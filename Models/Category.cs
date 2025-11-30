@@ -12,7 +12,8 @@ namespace ExpenseTrackerApp.Models
 
         // Which user this category belongs to
         public string? UserId { get; set; }
-        
+
+        // Navigation property for the user
         public ApplicationUser? User { get; set; }
 
         // Navigation property for related expenses
