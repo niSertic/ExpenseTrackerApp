@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Mvc.ModelBinding.Validation;
 
 namespace ExpenseTrackerApp.Models
 {
@@ -10,11 +11,15 @@ namespace ExpenseTrackerApp.Models
         // Which user this expense belongs to
         [Required]
         public string UserId { get; set; } = default!;
+
+        [ValidateNever]
         public ApplicationUser User { get; set; } = default!;
 
         // Category
         [Required]
         public int CategoryId { get; set; }
+
+        [ValidateNever]
         public Category Category { get; set; } = default!;
 
         // When the money was spent
