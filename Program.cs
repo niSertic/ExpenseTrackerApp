@@ -1,3 +1,6 @@
+using System;
+using System.Globalization;
+using Microsoft.AspNetCore.Localization;
 using ExpenseTrackerApp.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +16,7 @@ namespace ExpenseTrackerApp
 
             // Add services to the container.
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
-            
+
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
                 options.UseSqlServer(connectionString));
 
@@ -23,6 +26,23 @@ namespace ExpenseTrackerApp
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddControllersWithViews();
+            builder.Services.AddLocalization(); // optional for future resource localization
+
+            //Set application culture to en-US to fix decimal point/comma issues
+            var defaultCulture = new CultureInfo("en-US");
+            var supportedCultures = new[] { defaultCulture };
+
+            var localizationOptions = new RequestLocalizationOptions
+            {
+                DefaultRequestCulture = new RequestCulture(defaultCulture),
+                SupportedCultures = supportedCultures,
+                SupportedUICultures = supportedCultures
+            };
+
+            // Ensure background threads use the same default
+            CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
+            CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
+            
 
             var app = builder.Build();
 
@@ -39,7 +59,11 @@ namespace ExpenseTrackerApp
             }
 
             app.UseHttpsRedirection();
+
             app.UseRouting();
+
+            // Apply localization so requests use en-US
+            app.UseRequestLocalization(localizationOptions);
 
             app.UseAuthorization();
 
