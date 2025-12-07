@@ -8,8 +8,7 @@ namespace ExpenseTrackerApp.Models
     {
         public int Id { get; set; }
 
-        // Which user this expense belongs to
-        [Required]
+        [ValidateNever]
         public string UserId { get; set; } = default!;
 
         [ValidateNever]
@@ -22,18 +21,18 @@ namespace ExpenseTrackerApp.Models
         [ValidateNever]
         public Category Category { get; set; } = default!;
 
-        // When the money was spent
+        
         [Required]
         [DataType(DataType.Date)]
         public DateTime Date { get; set; }
 
-        // How much
+       
         [Required]
         [Range(0.01, double.MaxValue)]
         [Column(TypeName = "decimal(18,2)")]
         public decimal Amount { get; set; }
 
-        // Optional description
+        
         [StringLength(500)]
         public string? Description { get; set; }
     }

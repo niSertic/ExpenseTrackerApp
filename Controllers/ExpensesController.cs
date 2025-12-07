@@ -1,6 +1,4 @@
-﻿using System.Linq;
-using System.Threading.Tasks;
-using ExpenseTrackerApp.Data;
+﻿using ExpenseTrackerApp.Data;
 using ExpenseTrackerApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -76,20 +74,13 @@ namespace ExpenseTrackerApp.Controllers
         }
 
         // POST: Expenses/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("CategoryId,Date,Amount,Description")] Expense expense)
         {
             var userId = GetCurrentUserId();
             expense.UserId = userId;
-
-            // We set these ourselves / they are nav props, so remove their errors
-            ModelState.Remove(nameof(Expense.UserId));
-            ModelState.Remove(nameof(Expense.User));
-            ModelState.Remove(nameof(Expense.Category));
-
 
             if (ModelState.IsValid)
             {
@@ -137,11 +128,10 @@ namespace ExpenseTrackerApp.Controllers
         }
 
         // POST: Expenses/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
+        
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("Id,UserId,CategoryId,Date,Amount,Description")] Expense expense)
+        public async Task<IActionResult> Edit(int id, [Bind("Id,CategoryId,Date,Amount,Description")] Expense expense)
         {
             var userId = GetCurrentUserId();
 
@@ -161,10 +151,6 @@ namespace ExpenseTrackerApp.Controllers
             }
 
             expense.UserId = userId;
-
-            ModelState.Remove(nameof(Expense.UserId));
-            ModelState.Remove(nameof(Expense.User));
-            ModelState.Remove(nameof(Expense.Category));
 
             if (ModelState.IsValid)
             {
