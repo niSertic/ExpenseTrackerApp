@@ -1,18 +1,73 @@
 ﻿@model IEnumerable<ExpenseTrackerApp.Models.Expense>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Expenses";
+
+    // Values passed from controller 
+    var years = ViewBag.Years as List<int> ?? new List<int>();
+    int? selectedYear = ViewBag.SelectedYear as int?;
+    int? selectedMonth = ViewBag.SelectedMonth as int?;
+    string from = ViewBag.From as string ?? "";
+    string to = ViewBag.To as string ?? "";
+    decimal total = ViewBag.TotalAmount is decimal d ? d : 0m;
 }
 
-<h1>Index</h1>
+<h1>Expenses</h1>
+
+<!-- Filter form -->
+<form asp-action="Index" method="get" class="row g-2 mb-3">
+    <div class="col-md-2">
+        <label class="form-label">Year</label>
+        <select name="year" class="form-select">
+            <option value="">All</option>
+            @foreach (var y in years)
+            {
+                <option value="@y" selected="@(selectedYear == y)">@y</option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
+        <label class="form-label">Month</label>
+        <select name="month" class="form-select">
+            <option value="">All</option>
+            @for (int m = 1; m <= 12; m++)
+            {
+                <option value="@m" selected="@(selectedMonth == m)">
+                    @System.Globalization.CultureInfo.CurrentUICulture.DateTimeFormat.GetMonthName(m)
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">From</label>
+        <input type="date" name="from" class="form-control" value="@from" />
+    </div>
+
+    <div class="col-md-3">
+        <label class="form-label">To</label>
+        <input type="date" name="to" class="form-control" value="@to" />
+    </div>
+
+    <div class="col-md-2 d-flex align-items-end">
+        <button type="submit" class="btn btn-primary me-2">Filter</button>
+        <a asp-action="Index" class="btn btn-secondary">Clear</a>
+    </div>
+</form>
+
+
+<div class="mb-3">
+    <strong>Total for selected period:</strong> @total
+</div>
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="Create" class="btn btn-success">Create New</a>
 </p>
+
 <table class="table">
     <thead>
         <tr>
-            
             <th>
                 @Html.DisplayNameFor(model => model.Category)
             </th>
@@ -31,7 +86,6 @@
     <tbody>
 @foreach (var item in Model) {
         <tr>
-            
             <td>
                 @Html.DisplayFor(modelItem => item.Category.Name)
             </td>

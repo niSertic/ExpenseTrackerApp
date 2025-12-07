@@ -23,15 +23,55 @@ namespace ExpenseTrackerApp.Controllers
         private string GetCurrentUserId() => _userManager.GetUserId(User)!;
 
         // GET: Expenses
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(int? year, int? month, DateTime? from, DateTime? to)
         {
             var userId = GetCurrentUserId();
 
-            var expenses = await _context.Expenses
+            var query = _context.Expenses
                 .Include(e => e.Category)
-                .Where(e => e.UserId == userId)
+                .Where(e => e.UserId == userId);
+
+            if (year.HasValue)
+            {
+                query = query.Where(e => e.Date.Year == year.Value);
+            }
+            if (month.HasValue)
+            {
+                query = query.Where(e => e.Date.Month == month.Value);
+            }
+            if (from.HasValue)
+            {
+                query = query.Where(e => e.Date.Date >= from.Value.Date);
+            }
+            if (to.HasValue)
+            {
+                query = query.Where(e => e.Date.Date <= to.Value.Date);
+            }
+
+            var expenses = await query
                 .OrderByDescending(e => e.Date)
                 .ToListAsync();
+
+            // Total calculation
+            var total = expenses.Sum(e => e.Amount);
+
+            // ValueBag for filters and total
+            ViewBag.SelectedYear = year;
+            ViewBag.SelectedMonth = month;
+            ViewBag.From = from?.ToString("yyyy-MM-dd");
+            ViewBag.To = to?.ToString("yyyy-MM-dd");
+            ViewBag.TotalAmount = total;
+
+            // get distinct years for filter dropdown
+            var years = await _context.Expenses
+                .Where(e => e.UserId == userId)
+                .Select(e => e.Date.Year)
+                .Distinct()
+                .OrderBy(y => y)
+                .ToListAsync();
+
+            ViewBag.Years = years;
+
 
             return View(expenses);
         }
