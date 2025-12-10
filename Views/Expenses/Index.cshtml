@@ -12,6 +12,13 @@
     decimal total = ViewBag.TotalAmount is decimal d ? d : 0m;
 }
 
+@using ExpenseTrackerApp.Models
+
+@{
+    var categorySummary = ViewBag.CategorySummary as List<CategorySummaryViewModel>
+                          ?? new List<CategorySummaryViewModel>();
+}
+
 <h1>Expenses</h1>
 
 <!-- Filter form -->
@@ -60,6 +67,30 @@
 <div class="mb-3">
     <strong>Total for selected period:</strong> @total
 </div>
+
+@if (categorySummary.Any())
+{
+    <h4>Summary by Category</h4>
+    <table class="table table-sm table-bordered mb-3">
+        <thead>
+            <tr>
+                <th>Category</th>
+                <th>Total Amount</th>
+                <th>Share (%)</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var s in categorySummary)
+        {
+            <tr>
+                <td>@s.CategoryName</td>
+                <td>@s.TotalAmount</td>
+                <td>@s.Percentage.ToString("0.##") %</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
 
 <p>
     <a asp-action="Create" class="btn btn-success">Create New</a>

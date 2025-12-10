@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 
+
 namespace ExpenseTrackerApp.Controllers
 {
     [Authorize]
@@ -55,12 +56,25 @@ namespace ExpenseTrackerApp.Controllers
             // Total calculation
             var total = expenses.Sum(e => e.Amount);
 
+            // Category summary
+            var categorySummary = expenses
+                .GroupBy(e => e.Category.Name)
+                .Select(g => new CategorySummaryViewModel
+                {
+                    CategoryName = g.Key,
+                    TotalAmount = g.Sum(e => e.Amount),
+                    Percentage = total > 0 ? (g.Sum(e => e.Amount) / total) * 100 : 0
+                })
+                .OrderByDescending(s => s.TotalAmount)
+                .ToList();
+
             // ValueBag for filters and total
             ViewBag.SelectedYear = year;
             ViewBag.SelectedMonth = month;
             ViewBag.From = from?.ToString("yyyy-MM-dd");
             ViewBag.To = to?.ToString("yyyy-MM-dd");
             ViewBag.TotalAmount = total;
+            ViewBag.CategorySummary = categorySummary;
 
             // get distinct years for filter dropdown
             var years = await _context.Expenses
