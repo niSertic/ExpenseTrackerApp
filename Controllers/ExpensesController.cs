@@ -24,7 +24,7 @@ namespace ExpenseTrackerApp.Controllers
         private string GetCurrentUserId() => _userManager.GetUserId(User)!;
 
         // GET: Expenses
-        public async Task<IActionResult> Index(int? year, int? month, DateTime? from, DateTime? to)
+        public async Task<IActionResult> Index(int? year, int? month, DateTime? from, DateTime? to, int? categoryId)
         {
             var userId = GetCurrentUserId();
 
@@ -47,6 +47,10 @@ namespace ExpenseTrackerApp.Controllers
             if (to.HasValue)
             {
                 query = query.Where(e => e.Date.Date <= to.Value.Date);
+            }
+            if (categoryId.HasValue)
+            {
+                query = query.Where(e => e.CategoryId == categoryId.Value);
             }
 
             var expenses = await query
@@ -75,6 +79,7 @@ namespace ExpenseTrackerApp.Controllers
             ViewBag.To = to?.ToString("yyyy-MM-dd");
             ViewBag.TotalAmount = total;
             ViewBag.CategorySummary = categorySummary;
+            ViewBag.SelectedCategoryId = categoryId;
 
             // get distinct years for filter dropdown
             var years = await _context.Expenses
@@ -85,6 +90,13 @@ namespace ExpenseTrackerApp.Controllers
                 .ToListAsync();
 
             ViewBag.Years = years;
+
+            var categories = await _context.Categories
+            .Where(c => c.UserId == null || c.UserId == userId)
+            .OrderBy(c => c.Name)
+            .ToListAsync();
+
+            ViewBag.Categories = categories;
 
 
             return View(expenses);

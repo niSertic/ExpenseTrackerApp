@@ -10,6 +10,8 @@
     string from = ViewBag.From as string ?? "";
     string to = ViewBag.To as string ?? "";
     decimal total = ViewBag.TotalAmount is decimal d ? d : 0m;
+    var categories = ViewBag.Categories as List<ExpenseTrackerApp.Models.Category> ?? new();
+    int? selectedCategoryId = ViewBag.SelectedCategoryId as int?;
 }
 
 @using ExpenseTrackerApp.Models
@@ -23,7 +25,7 @@
 
 <!-- Filter form -->
 <form asp-action="Index" method="get" class="row g-2 mb-3">
-    <div class="col-md-2">
+    <div class="col-md-1">
         <label class="form-label">Year</label>
         <select name="year" class="form-select">
             <option value="">All</option>
@@ -34,7 +36,7 @@
         </select>
     </div>
 
-    <div class="col-md-2">
+    <div class="col-md-1">
         <label class="form-label">Month</label>
         <select name="month" class="form-select">
             <option value="">All</option>
@@ -47,12 +49,25 @@
         </select>
     </div>
 
-    <div class="col-md-3">
+    <div class="col-md-2">
+        <label class="form-label">Category</label>
+        <select name="categoryId" class="form-select">
+            <option value="">All</option>
+            @foreach (var c in categories)
+            {
+                <option value="@c.Id" selected="@(selectedCategoryId == c.Id)">
+                    @c.Name
+                </option>
+            }
+        </select>
+    </div>
+
+    <div class="col-md-2">
         <label class="form-label">From</label>
         <input type="date" name="from" class="form-control" value="@from" />
     </div>
 
-    <div class="col-md-3">
+    <div class="col-md-2">
         <label class="form-label">To</label>
         <input type="date" name="to" class="form-control" value="@to" />
     </div>
