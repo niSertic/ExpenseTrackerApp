@@ -26,6 +26,10 @@ namespace ExpenseTrackerApp.Data
                 new Category { Id = 8, Name = "Shopping", UserId = null }
             );
 
+            builder.Entity<Category>()
+            .HasIndex(c => new { c.UserId, c.Name })
+            .IsUnique();
+
         }
 
         public DbSet<Category> Categories { get; set; }

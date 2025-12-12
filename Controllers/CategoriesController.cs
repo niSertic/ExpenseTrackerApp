@@ -27,10 +27,10 @@ namespace ExpenseTrackerApp.Controllers
         // GET: Categories
         public async Task<IActionResult> Index()
         {
-            var UserId = GetCurrentUserId();
+            var userId = GetCurrentUserId();
 
             var categories = await _context.Categories
-                .Where(c => c.UserId == null || c.UserId == UserId)
+                .Where(c => c.UserId == null || c.UserId == userId)
                 .OrderBy(c => c.Name)
                 .ToListAsync();
 
@@ -49,13 +49,35 @@ namespace ExpenseTrackerApp.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create([Bind("Name")] Category category)
         {
-            var UserId = GetCurrentUserId();
-            category.UserId = UserId;
+            var userId = GetCurrentUserId();
+            var normalizedName = (category.Name ?? "").Trim();
+
+            if (string.IsNullOrWhiteSpace(normalizedName))
+            {
+                ModelState.AddModelError(nameof(Category.Name), "Name is required.");
+                return View(category);
+            }
+
+            // Check for duplicate category names for the user and global categories
+            var exists = await _context.Categories.AnyAsync(c =>
+                c.Name.ToLower() == normalizedName.ToLower() &&
+                (c.UserId == null || c.UserId == userId));
+
+            if (exists)
+            {
+                ModelState.AddModelError(nameof(Category.Name),
+                    "This category name already exists.");
+            }
+
 
             if (ModelState.IsValid)
             {
+                category.Name = normalizedName;
+                category.UserId = userId;
+
                 _context.Add(category);
                 await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
             
@@ -107,27 +129,35 @@ namespace ExpenseTrackerApp.Controllers
                 return NotFound();
             }
 
-            category.UserId = userId;
+            var normalizedName = (category.Name ?? "").Trim();
+
+            if (string.IsNullOrWhiteSpace(normalizedName))
+            {
+                ModelState.AddModelError(nameof(Category.Name), "Name is required.");
+                return View(category);
+            }
+
+            // Check for duplicate category names for the user and global categories
+            var exists = await _context.Categories.AnyAsync(c =>
+                c.Id != id &&
+                c.Name.ToLower() == normalizedName.ToLower() &&
+                (c.UserId == null || c.UserId == userId));
+
+            if (exists)
+            {
+                ModelState.AddModelError(nameof(Category.Name),
+                    "This category name already exists.");
+            }
 
 
             if (ModelState.IsValid)
             {
-                try
-                {
-                    _context.Update(category);
-                    await _context.SaveChangesAsync();
-                }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!CategoryExists(id, userId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
+                category.Name = normalizedName;
+                category.UserId = userId;
+
+                _context.Update(category);
+                await _context.SaveChangesAsync();
+
                 return RedirectToAction(nameof(Index));
             }
             
