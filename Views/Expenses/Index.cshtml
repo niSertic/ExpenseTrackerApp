@@ -1,4 +1,5 @@
 ﻿@using ExpenseTrackerApp.Models
+@using System.Text.Json
 @model IEnumerable<ExpenseTrackerApp.Models.Expense>
 
 @{
@@ -20,6 +21,9 @@
     
     var categorySummary = ViewBag.CategorySummary as List<CategorySummaryViewModel>
                           ?? new List<CategorySummaryViewModel>();
+
+    var chartLabelsJson = JsonSerializer.Serialize(ViewBag.ChartLabels ?? new List<string>());
+    var chartValuesJson = JsonSerializer.Serialize(ViewBag.ChartValues ?? new List<decimal>());
 
     var currency = Configuration["AppSettings:CurrencySymbol"] ?? "€";
 }
@@ -90,33 +94,46 @@
 {
     <div class="mb-3">
         <strong>Stats for selected category:  </strong>
-        Number of expenses: @count  ||
-		Average amount: @average.ToString("N2") @currency
+        Number of expenses: @count  |
+		Average amount: @average.ToString("N2") @currency |
 	</div>
 }
 
 @if (!selectedCategoryId.HasValue && categorySummary.Any())
 {
-    <h4>Summary by Category</h4>
-    <table class="table table-sm table-bordered mb-3">
-        <thead>
-            <tr>
-                <th>Category</th>
-                <th>Total Amount</th>
-                <th>Share (%)</th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var s in categorySummary)
-        {
-            <tr>
-                <td>@s.CategoryName</td>
-                <td>@s.TotalAmount.ToString("N2") @currency</td>
-                <td>@s.Percentage.ToString("0.##") %</td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    <div class="row g-3 align-items-start mb-3">
+        <div class="col-12 col-lg-7">
+
+            <h4>Summary by Category</h4>
+
+            <table class="table table-sm table-bordered mb-0">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Total Amount</th>
+                        <th>Share (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                @foreach (var s in categorySummary)
+                {
+                    <tr>
+                        <td>@s.CategoryName</td>
+                        <td>@s.TotalAmount.ToString("N2") @currency</td>
+                        <td>@s.Percentage.ToString("0.##") %</td>
+                    </tr>
+                }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-12 col-lg-5">
+            <h4 class="mb-2">Spending Chart</h4>
+
+            <div class="border rounded p-2" style="max-width: 360px;">
+                <canvas id="categoryChart"></canvas>
+            </div>
+		</div>
+	</div>
 }
 
 <p>
@@ -165,3 +182,41 @@
 }
     </tbody>
 </table>
+
+@section Scripts {
+    <script>
+        (function () {
+            const canvas = document.getElementById('categoryChart');
+            if (!canvas) return;
+
+            const labels = @Html.Raw(chartLabelsJson);
+            const values = @Html.Raw(chartValuesJson);
+            const currency = @Html.Raw(JsonSerializer.Serialize(currency));
+
+            new Chart(canvas, {
+                type: 'pie',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: { position: 'bottom' },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) {
+                                        const value = ctx.raw ?? 0;
+                                        return `${ctx.label}: ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
+                                    }
+                                }
+                           }
+                    }
+                }
+        });
+        })();
+    </script>
+
+}

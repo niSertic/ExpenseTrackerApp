@@ -81,11 +81,17 @@ namespace ExpenseTrackerApp.Controllers
             ViewBag.SelectedMonth = month;
             ViewBag.From = from?.ToString("yyyy-MM-dd");
             ViewBag.To = to?.ToString("yyyy-MM-dd");
+
             ViewBag.TotalAmount = total;
+
             ViewBag.CategorySummary = categorySummary;
             ViewBag.SelectedCategoryId = categoryId;
+
             ViewBag.ExpenseCount = count;
             ViewBag.AverageAmount = average;
+
+            ViewBag.ChartLabels = categorySummary.Select(s => s.CategoryName).ToList();
+            ViewBag.ChartValues = categorySummary.Select(s => s.TotalAmount).ToList();
 
             // get distinct years for filter dropdown
             var years = await _context.Expenses
