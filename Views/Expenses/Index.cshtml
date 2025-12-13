@@ -12,6 +12,8 @@
     decimal total = ViewBag.TotalAmount is decimal d ? d : 0m;
     var categories = ViewBag.Categories as List<ExpenseTrackerApp.Models.Category> ?? new();
     int? selectedCategoryId = ViewBag.SelectedCategoryId as int?;
+    int count = ViewBag.ExpenseCount is int c ? c : 0;
+    decimal average = ViewBag.AverageAmount is decimal a ? a : 0m;
 }
 
 @using ExpenseTrackerApp.Models
@@ -83,7 +85,16 @@
     <strong>Total for selected period:</strong> @total
 </div>
 
-@if (categorySummary.Any())
+@if (selectedCategoryId.HasValue)
+{
+    <div class="mb-3">
+        <strong>Stats for selected category:  </strong>
+        Number of expenses: @count ||
+		Average amount: @average.ToString("0.00") 
+    </div>
+}
+
+@if (!selectedCategoryId.HasValue && categorySummary.Any())
 {
     <h4>Summary by Category</h4>
     <table class="table table-sm table-bordered mb-3">

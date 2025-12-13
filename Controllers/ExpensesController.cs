@@ -60,6 +60,10 @@ namespace ExpenseTrackerApp.Controllers
             // Total calculation
             var total = expenses.Sum(e => e.Amount);
 
+            // Count and Average for filtered category
+            var count = expenses.Count;
+            var average = count > 0 ? expenses.Average(e => e.Amount) : 0m;
+
             // Category summary
             var categorySummary = expenses
                 .GroupBy(e => e.Category.Name)
@@ -80,6 +84,8 @@ namespace ExpenseTrackerApp.Controllers
             ViewBag.TotalAmount = total;
             ViewBag.CategorySummary = categorySummary;
             ViewBag.SelectedCategoryId = categoryId;
+            ViewBag.ExpenseCount = count;
+            ViewBag.AverageAmount = average;
 
             // get distinct years for filter dropdown
             var years = await _context.Expenses
