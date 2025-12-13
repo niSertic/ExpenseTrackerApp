@@ -1,4 +1,5 @@
-﻿@model IEnumerable<ExpenseTrackerApp.Models.Expense>
+﻿@using ExpenseTrackerApp.Models
+@model IEnumerable<ExpenseTrackerApp.Models.Expense>
 
 @{
     ViewData["Title"] = "Expenses";
@@ -9,18 +10,18 @@
     int? selectedMonth = ViewBag.SelectedMonth as int?;
     string from = ViewBag.From as string ?? "";
     string to = ViewBag.To as string ?? "";
-    decimal total = ViewBag.TotalAmount is decimal d ? d : 0m;
+
     var categories = ViewBag.Categories as List<ExpenseTrackerApp.Models.Category> ?? new();
     int? selectedCategoryId = ViewBag.SelectedCategoryId as int?;
+    
+    decimal total = ViewBag.TotalAmount is decimal d ? d : 0m;
     int count = ViewBag.ExpenseCount is int c ? c : 0;
     decimal average = ViewBag.AverageAmount is decimal a ? a : 0m;
-}
-
-@using ExpenseTrackerApp.Models
-
-@{
+    
     var categorySummary = ViewBag.CategorySummary as List<CategorySummaryViewModel>
                           ?? new List<CategorySummaryViewModel>();
+
+    var currency = Configuration["AppSettings:CurrencySymbol"] ?? "€";
 }
 
 <h1>Expenses</h1>
@@ -82,16 +83,16 @@
 
 
 <div class="mb-3">
-    <strong>Total for selected period:</strong> @total
+	<strong>Total for selected period:</strong> @total.ToString("N2") @currency
 </div>
 
 @if (selectedCategoryId.HasValue)
 {
     <div class="mb-3">
         <strong>Stats for selected category:  </strong>
-        Number of expenses: @count ||
-		Average amount: @average.ToString("0.00") 
-    </div>
+        Number of expenses: @count  ||
+		Average amount: @average.ToString("N2") @currency
+	</div>
 }
 
 @if (!selectedCategoryId.HasValue && categorySummary.Any())
@@ -110,7 +111,7 @@
         {
             <tr>
                 <td>@s.CategoryName</td>
-                <td>@s.TotalAmount</td>
+                <td>@s.TotalAmount.ToString("N2") @currency</td>
                 <td>@s.Percentage.ToString("0.##") %</td>
             </tr>
         }
@@ -150,7 +151,7 @@
                 @Html.DisplayFor(modelItem => item.Date)
             </td>
             <td>
-                @Html.DisplayFor(modelItem => item.Amount)
+                @item.Amount.ToString("N2") @currency
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.Description)

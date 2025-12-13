@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Create";
+    var currency = Configuration["AppSettings:CurrencySymbol"] ?? "€";
 }
 
 <h1>Create</h1>
@@ -25,7 +26,7 @@
             </div>
             <div class="form-group">
                 <label asp-for="Amount" class="control-label"></label>
-                <input asp-for="Amount" class="form-control" placeholder="0.00"/>
+                <input asp-for="Amount" class="form-control" placeholder="0.00 @currency"/>
                 <span asp-validation-for="Amount" class="text-danger"></span>
             </div>
             <div class="form-group">
