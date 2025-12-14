@@ -1,59 +1,52 @@
 ﻿@model IEnumerable<ExpenseTrackerApp.Models.SavingPlan>
 
 @{
-    ViewData["Title"] = "Index";
+    ViewData["Title"] = "Saving Plans";
+    var currency = Configuration["AppSettings:CurrencySymbol"] ?? "€";
 }
 
-<h1>Index</h1>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.StartDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.EndDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ExpectedMonthlyIncome)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.PlannedMonthlySavings)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Notes)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.StartDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.EndDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ExpectedMonthlyIncome)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.PlannedMonthlySavings)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Notes)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
-            </td>
-        </tr>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Saving Plans</h1>
+    <a asp-action="Create" class="btn btn-success">+ New Plan</a>
+</div>
+
+@if (!Model.Any())
+{
+    <div class="alert alert-info">
+        You don’t have any saving plans yet. Click <strong>+ New Plan</strong> to create one.
+    </div>
 }
-    </tbody>
-</table>
+else
+{
+    <table class="table table-striped align-middle">
+        <thead>
+            <tr>
+                <th>Period</th>
+                <th>Monthly Income</th>
+                <th>Monthly Savings Goal</th>
+                <th style="width: 220px;"></th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.StartDate.ToString("yyyy-MM-dd") – @item.EndDate.ToString("yyyy-MM-dd")</td>
+                <td>@item.ExpectedMonthlyIncome.ToString("N2") @currency</td>
+                <td>
+                    @(item.PlannedMonthlySavings.HasValue
+                        ? item.PlannedMonthlySavings.Value.ToString("N2") + " " + currency
+                        : "-")
+                </td>
+                <td>
+                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
+                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
+                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                </td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}
