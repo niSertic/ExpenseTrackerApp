@@ -34,5 +34,6 @@ namespace ExpenseTrackerApp.Data
 
         public DbSet<Category> Categories { get; set; }
         public DbSet<Expense> Expenses { get; set; }
-        }
+        public DbSet<SavingPlan> SavingPlans { get; set; }
+    }
 }
