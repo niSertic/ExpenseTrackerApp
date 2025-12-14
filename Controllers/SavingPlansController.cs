@@ -57,6 +57,51 @@ namespace ExpenseTrackerApp.Controllers
                 return NotFound();
             }
 
+            var today = DateTime.Today;
+            var effectiveEnd = plan.EndDate.Date < today ? plan.EndDate.Date : today;
+
+            int monthsElapsed = 0;
+            if (effectiveEnd >= plan.StartDate.Date)
+            {
+                monthsElapsed = MonthsInclusive(plan.StartDate, effectiveEnd);
+            }
+
+            
+            var incomeToDate = monthsElapsed * plan.ExpectedMonthlyIncome;
+
+            var spentToDate = 0m;
+            if (monthsElapsed > 0)
+            {
+                spentToDate = await _context.Expenses
+                    .Where(e => e.UserId == userId &&
+                                e.Date.Date >= plan.StartDate.Date &&
+                                e.Date.Date <= effectiveEnd)
+                    .SumAsync(e => (decimal?)e.Amount) ?? 0m;
+            }
+
+            var savingsToDate = incomeToDate - spentToDate;
+
+            decimal? goalToDate = null;
+            decimal? progressPercent = null;
+
+            if (plan.PlannedMonthlySavings.HasValue)
+            {
+                goalToDate = monthsElapsed * plan.PlannedMonthlySavings.Value;
+
+                if (goalToDate.Value > 0)
+                {
+                    progressPercent = Math.Round((savingsToDate / goalToDate.Value) * 100m, 1);
+                }
+            }
+
+            ViewBag.EffectiveEnd = effectiveEnd;
+            ViewBag.MonthsElapsed = monthsElapsed;
+            ViewBag.IncomeToDate = incomeToDate;
+            ViewBag.SpentToDate = spentToDate;
+            ViewBag.SavingsToDate = savingsToDate;
+            ViewBag.GoalToDate = goalToDate;
+            ViewBag.ProgressPercent = progressPercent;
+
             return View(plan);
         }
 
@@ -207,6 +252,13 @@ namespace ExpenseTrackerApp.Controllers
         private bool SavingPlanExists(int id, string userId)
         {
             return _context.SavingPlans.Any(p => p.Id == id && p.UserId == userId);
+        }
+
+        private static int MonthsInclusive(DateTime start, DateTime end)
+        {
+            start = start.Date;
+            end = end.Date;
+            return ((end.Year - start.Year) * 12) + end.Month - start.Month + 1;
         }
     }
 }

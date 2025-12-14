@@ -3,34 +3,129 @@
 @{
     ViewData["Title"] = "Details";
     var currency = Configuration["AppSettings:CurrencySymbol"] ?? "€";
+
+    DateTime effectiveEnd = ViewBag.EffectiveEnd is DateTime dt ? dt : Model.EndDate;
+    int monthsElapsed = ViewBag.MonthsElapsed is int me ? me : 0;
+
+    decimal incomeToDate = ViewBag.IncomeToDate is decimal itd ? itd : 0m;
+    decimal spentToDate = ViewBag.SpentToDate is decimal std ? std : 0m;
+    decimal savingsToDate = ViewBag.SavingsToDate is decimal sv ? sv : 0m;
+
+    decimal? goalToDate = ViewBag.GoalToDate as decimal?;
+    decimal? progressPercent = ViewBag.ProgressPercent as decimal?;
 }
 
-<h1>Saving Plan</h1>
+<h1>Saving Plan Dashboard</h1>
 
-<div class="mt-3">
- 
-    <dl class="row">
-        <dt class="col-sm-3">Period</dt>
-        <dd class="col-sm-9">@Model.StartDate.ToString("yyyy-MM-dd") – @Model.EndDate.ToString("yyyy-MM-dd")</dd>
+<div class="mb-3">
+    <div class="text-muted">
+        Plan period:
+        <strong>@Model.StartDate.ToString("yyyy-MM-dd")</strong> –
+        <strong>@Model.EndDate.ToString("yyyy-MM-dd")</strong>
+        <br />
+        Tracking to date (through <strong>@effectiveEnd.ToString("yyyy-MM-dd")</strong>)
+        · Months elapsed: <strong>@monthsElapsed</strong>
+    </div>
+</div>
 
-        <dt class="col-sm-3">Expected monthly income</dt>
-        <dd class="col-sm-9">@Model.ExpectedMonthlyIncome.ToString("N2") @currency</dd>
+<div class="row g-3 mb-4">
+    <div class="col-12 col-md-4">
+        <div class="border rounded p-3 h-100">
+            <div class="text-muted">Income (to date)</div>
+            <div class="fs-4 fw-semibold">@incomeToDate.ToString("N2") @currency</div>
+            <div class="text-muted">(@Model.ExpectedMonthlyIncome.ToString("N2") @currency / month)</div>
+        </div>
+    </div>
 
-        <dt class="col-sm-3">Planned monthly savings</dt>
-        <dd class="col-sm-9">
-            @(Model.PlannedMonthlySavings.HasValue
-                        ? Model.PlannedMonthlySavings.Value.ToString("N2") + " " + currency
-                        : "-")
-        </dd>
+    <div class="col-12 col-md-4">
+        <div class="border rounded p-3 h-100">
+            <div class="text-muted">Spent (to date)</div>
+            <div class="fs-4 fw-semibold">@spentToDate.ToString("N2") @currency</div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <div class="border rounded p-3 h-100">
+            <div class="text-muted">Estimated savings (to date)</div>
+            <div class="fs-4 fw-semibold @(savingsToDate >= 0 ? "text-success" : "text-danger")">
+                @savingsToDate.ToString("N2") @currency
+            </div>
+
+            @if (Model.PlannedMonthlySavings.HasValue)
+            {
+                <div class="text-muted">
+                    Goal: @Model.PlannedMonthlySavings.Value.ToString("N2") @currency / month
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.PlannedMonthlySavings.HasValue)
+{
+    <h4>Goal Progress (to date)</h4>
+
+    @if (monthsElapsed <= 0)
+    {
+        <div class="alert alert-info">
+            This plan hasn't started yet, so there is no progress to calculate.
+        </div>
+    }
+    else if (!goalToDate.HasValue || goalToDate.Value <= 0)
+    {
+        <div class="alert alert-info">
+            Savings goal is set but is 0 for the elapsed period.
+        </div>
+    }
+    else
+    {
+        var pct = progressPercent ?? 0m;
+        var barWidth = Math.Min(pct, 100m);
+
+        <div class="mb-2">
+            <strong>Goal (to date):</strong> @goalToDate.Value.ToString("N2") @currency
+        </div>
+
+        <div class="mb-2">
+            <strong>Progress:</strong> @pct.ToString("0.#")%
+            @if (pct > 100m)
+            {
+                <span class="text-muted">(above goal)</span>
+            }
+        </div>
+
+        <div class="progress mb-3" style="height: 18px;">
+            <div class="progress-bar" role="progressbar"
+                 style="width: @barWidth%"
+                 aria-valuenow="@barWidth" aria-valuemin="0" aria-valuemax="100">
+            </div>
+        </div>
+
+        @if (savingsToDate >= goalToDate.Value)
+        {
+            <div class="alert alert-success">
+                <strong>Nice!</strong> You are above your goal by
+                @( (savingsToDate - goalToDate.Value).ToString("N2") ) @currency.
+            </div>
+        }
+        else
+        {
+            <div class="alert alert-warning">
+                <strong>Remaining to goal:</strong>
+                @( (goalToDate.Value - savingsToDate).ToString("N2") ) @currency.
+            </div>
+        }
+    }
+}
 
         @if (!string.IsNullOrWhiteSpace(Model.Notes))
         {
-            <dt class="col-sm-3">Notes</dt>
-            <dd class="col-sm-9">@Model.Notes</dd>
+            <h4>Notes</h4>
+            <p>@Model.Notes</p>
+            
         }
-    </dl>
-</div>
-<div>
+
+<div class="mt-3 d-flex justify-content-left gap-2">
     <a asp-action="Edit" asp-route-id="@Model?.Id" class="btn btn-outline-secondary">Edit</a>
     <a asp-action="Index" class="btn btn-secondary">Back</a>
 </div>
