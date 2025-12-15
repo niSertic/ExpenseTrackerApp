@@ -1,14 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using ExpenseTrackerApp.Data;
+using ExpenseTrackerApp.Models;
+using ExpenseTrackerApp.Models.ViewModels;
+using ExpenseTrackerApp.Services.SavingPlans;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using ExpenseTrackerApp.Data;
-using ExpenseTrackerApp.Models;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Identity;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
 
 namespace ExpenseTrackerApp.Controllers
 {
@@ -17,11 +20,13 @@ namespace ExpenseTrackerApp.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly ISavingPlanDashboardService _dashboardService;
 
-        public SavingPlansController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public SavingPlansController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, ISavingPlanDashboardService dashboardService)
         {
             _context = context;
             _userManager = userManager;
+            _dashboardService = dashboardService;
         }
 
         private string GetCurrentUserId() => _userManager.GetUserId(User)!;
@@ -49,60 +54,10 @@ namespace ExpenseTrackerApp.Controllers
 
             var userId = GetCurrentUserId();
 
-            var plan = await _context.SavingPlans
-                .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
-            
-            if (plan == null)
-            {
-                return NotFound();
-            }
+            var vm = await _dashboardService.BuildAsync(id.Value, userId);
+            if (vm == null) return NotFound();
 
-            var today = DateTime.Today;
-            var effectiveEnd = plan.EndDate.Date < today ? plan.EndDate.Date : today;
-
-            int monthsElapsed = 0;
-            if (effectiveEnd >= plan.StartDate.Date)
-            {
-                monthsElapsed = MonthsInclusive(plan.StartDate, effectiveEnd);
-            }
-
-            
-            var incomeToDate = monthsElapsed * plan.ExpectedMonthlyIncome;
-
-            var spentToDate = 0m;
-            if (monthsElapsed > 0)
-            {
-                spentToDate = await _context.Expenses
-                    .Where(e => e.UserId == userId &&
-                                e.Date.Date >= plan.StartDate.Date &&
-                                e.Date.Date <= effectiveEnd)
-                    .SumAsync(e => (decimal?)e.Amount) ?? 0m;
-            }
-
-            var savingsToDate = incomeToDate - spentToDate;
-
-            decimal? goalToDate = null;
-            decimal? progressPercent = null;
-
-            if (plan.PlannedMonthlySavings.HasValue)
-            {
-                goalToDate = monthsElapsed * plan.PlannedMonthlySavings.Value;
-
-                if (goalToDate.Value > 0)
-                {
-                    progressPercent = Math.Round((savingsToDate / goalToDate.Value) * 100m, 1);
-                }
-            }
-
-            ViewBag.EffectiveEnd = effectiveEnd;
-            ViewBag.MonthsElapsed = monthsElapsed;
-            ViewBag.IncomeToDate = incomeToDate;
-            ViewBag.SpentToDate = spentToDate;
-            ViewBag.SavingsToDate = savingsToDate;
-            ViewBag.GoalToDate = goalToDate;
-            ViewBag.ProgressPercent = progressPercent;
-
-            return View(plan);
+            return View(vm);
         }
 
         // GET: SavingPlans/Create
@@ -252,13 +207,6 @@ namespace ExpenseTrackerApp.Controllers
         private bool SavingPlanExists(int id, string userId)
         {
             return _context.SavingPlans.Any(p => p.Id == id && p.UserId == userId);
-        }
-
-        private static int MonthsInclusive(DateTime start, DateTime end)
-        {
-            start = start.Date;
-            end = end.Date;
-            return ((end.Year - start.Year) * 12) + end.Month - start.Month + 1;
         }
     }
 }

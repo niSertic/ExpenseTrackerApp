@@ -1,5 +1,6 @@
-﻿@using ExpenseTrackerApp.Models
-@using System.Text.Json
+﻿@using System.Text.Json
+@using ExpenseTrackerApp.Models
+@using ExpenseTrackerApp.Models.ViewModels
 @model IEnumerable<ExpenseTrackerApp.Models.Expense>
 
 @{
@@ -19,8 +20,8 @@
     int count = ViewBag.ExpenseCount is int c ? c : 0;
     decimal average = ViewBag.AverageAmount is decimal a ? a : 0m;
     
-    var categorySummary = ViewBag.CategorySummary as List<CategorySummaryViewModel>
-                          ?? new List<CategorySummaryViewModel>();
+    var categorySummary = ViewBag.CategorySummary as List<CategorySummaryVM>
+                          ?? new List<CategorySummaryVM>();
 
     var chartLabelsJson = JsonSerializer.Serialize(ViewBag.ChartLabels ?? new List<string>());
     var chartValuesJson = JsonSerializer.Serialize(ViewBag.ChartValues ?? new List<decimal>());

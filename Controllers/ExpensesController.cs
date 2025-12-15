@@ -1,4 +1,5 @@
 ﻿using ExpenseTrackerApp.Data;
+using ExpenseTrackerApp.Models.ViewModels;
 using ExpenseTrackerApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
@@ -67,7 +68,7 @@ namespace ExpenseTrackerApp.Controllers
             // Category summary
             var categorySummary = expenses
                 .GroupBy(e => e.Category.Name)
-                .Select(g => new CategorySummaryViewModel
+                .Select(g => new CategorySummaryVM
                 {
                     CategoryName = g.Key,
                     TotalAmount = g.Sum(e => e.Amount),

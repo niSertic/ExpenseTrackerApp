@@ -1,6 +1,6 @@
-﻿namespace ExpenseTrackerApp.Models
+﻿namespace ExpenseTrackerApp.Models.ViewModels
 {
-    public class CategorySummaryViewModel
+    public class CategorySummaryVM
     {
         public string CategoryName { get; set; } = string.Empty;
         public decimal TotalAmount { get; set; }

@@ -5,6 +5,7 @@ using ExpenseTrackerApp.Data;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using ExpenseTrackerApp.Models;
+using ExpenseTrackerApp.Services.SavingPlans;
 
 namespace ExpenseTrackerApp
 {
@@ -26,6 +27,7 @@ namespace ExpenseTrackerApp
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddControllersWithViews();
+            builder.Services.AddScoped<ISavingPlanDashboardService, SavingPlanDashboardService>();
             builder.Services.AddLocalization(); // optional for future resource localization
 
             //Set application culture to en-US to fix decimal point/comma issues
