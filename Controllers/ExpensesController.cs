@@ -1,6 +1,7 @@
 ﻿using ExpenseTrackerApp.Data;
-using ExpenseTrackerApp.Models.ViewModels;
 using ExpenseTrackerApp.Models;
+using ExpenseTrackerApp.Models.ViewModels;
+using ExpenseTrackerApp.Services.Expenses;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -15,11 +16,13 @@ namespace ExpenseTrackerApp.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IExpensesDashboardService _dashboardService;
 
-        public ExpensesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager)
+        public ExpensesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IExpensesDashboardService dashboardService)
         {
             _context = context;
             _userManager = userManager;
+            _dashboardService = dashboardService;
         }
 
         private string GetCurrentUserId() => _userManager.GetUserId(User)!;
@@ -29,90 +32,18 @@ namespace ExpenseTrackerApp.Controllers
         {
             var userId = GetCurrentUserId();
 
-            var query = _context.Expenses
-                .Include(e => e.Category)
-                .Where(e => e.UserId == userId);
-
-            if (year.HasValue)
+            var filters = new ExpenseFiltersVM
             {
-                query = query.Where(e => e.Date.Year == year.Value);
-            }
-            if (month.HasValue)
-            {
-                query = query.Where(e => e.Date.Month == month.Value);
-            }
-            if (from.HasValue)
-            {
-                query = query.Where(e => e.Date.Date >= from.Value.Date);
-            }
-            if (to.HasValue)
-            {
-                query = query.Where(e => e.Date.Date <= to.Value.Date);
-            }
-            if (categoryId.HasValue)
-            {
-                query = query.Where(e => e.CategoryId == categoryId.Value);
-            }
+                Year = year,
+                Month = month,
+                From = from,
+                To = to,
+                CategoryId = categoryId
+            };
 
-            var expenses = await query
-                .OrderByDescending(e => e.Date)
-                .ToListAsync();
+            var vm = await _dashboardService.BuildIndexAsync(userId, filters);
 
-            // Total calculation
-            var total = expenses.Sum(e => e.Amount);
-
-            // Count and Average for filtered category
-            var count = expenses.Count;
-            var average = count > 0 ? expenses.Average(e => e.Amount) : 0m;
-
-            // Category summary
-            var categorySummary = expenses
-                .GroupBy(e => e.Category.Name)
-                .Select(g => new CategorySummaryVM
-                {
-                    CategoryName = g.Key,
-                    TotalAmount = g.Sum(e => e.Amount),
-                    Percentage = total > 0 ? (g.Sum(e => e.Amount) / total) * 100 : 0
-                })
-                .OrderByDescending(s => s.TotalAmount)
-                .ToList();
-
-            // ValueBag for filters and total
-            ViewBag.SelectedYear = year;
-            ViewBag.SelectedMonth = month;
-            ViewBag.From = from?.ToString("yyyy-MM-dd");
-            ViewBag.To = to?.ToString("yyyy-MM-dd");
-
-            ViewBag.TotalAmount = total;
-
-            ViewBag.CategorySummary = categorySummary;
-            ViewBag.SelectedCategoryId = categoryId;
-
-            ViewBag.ExpenseCount = count;
-            ViewBag.AverageAmount = average;
-
-            ViewBag.ChartLabels = categorySummary.Select(s => s.CategoryName).ToList();
-            ViewBag.ChartValues = categorySummary.Select(s => s.TotalAmount).ToList();
-
-            // get distinct years for filter dropdown
-            var years = await _context.Expenses
-                .Where(e => e.UserId == userId)
-                .Select(e => e.Date.Year)
-                .Distinct()
-                .OrderBy(y => y)
-                .ToListAsync();
-
-            ViewBag.Years = years;
-
-            var categories = await _context.Categories
-            .Where(c => c.UserId == null || c.UserId == userId)
-            .OrderBy(c => c.Name)
-            .ToListAsync();
-
-            ViewBag.Categories = categories;
-
-
-            return View(expenses);
+            return View(vm);
         }
 
         // GET: Expenses/Details/5

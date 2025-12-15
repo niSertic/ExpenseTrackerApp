@@ -213,9 +213,5 @@ namespace ExpenseTrackerApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        private bool CategoryExists(int id, string userId)
-        {
-            return _context.Categories.Any(c => c.Id == id && c.UserId == userId);
-        }
     }
 }

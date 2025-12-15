@@ -1,30 +1,29 @@
 ﻿@using System.Text.Json
 @using ExpenseTrackerApp.Models
 @using ExpenseTrackerApp.Models.ViewModels
-@model IEnumerable<ExpenseTrackerApp.Models.Expense>
+@model ExpenseTrackerApp.Models.ViewModels.ExpensesIndexVM
 
 @{
     ViewData["Title"] = "Expenses";
 
-    // Values passed from controller 
-    var years = ViewBag.Years as List<int> ?? new List<int>();
-    int? selectedYear = ViewBag.SelectedYear as int?;
-    int? selectedMonth = ViewBag.SelectedMonth as int?;
-    string from = ViewBag.From as string ?? "";
-    string to = ViewBag.To as string ?? "";
+    var years = Model.Years ?? new List<int>();
+    var categories = Model.Categories ?? new List<Category>();
 
-    var categories = ViewBag.Categories as List<ExpenseTrackerApp.Models.Category> ?? new();
-    int? selectedCategoryId = ViewBag.SelectedCategoryId as int?;
-    
-    decimal total = ViewBag.TotalAmount is decimal d ? d : 0m;
-    int count = ViewBag.ExpenseCount is int c ? c : 0;
-    decimal average = ViewBag.AverageAmount is decimal a ? a : 0m;
-    
-    var categorySummary = ViewBag.CategorySummary as List<CategorySummaryVM>
-                          ?? new List<CategorySummaryVM>();
+    var selectedYear = Model.Filters.Year;
+    var selectedMonth = Model.Filters.Month;
+    var selectedCategoryId = Model.Filters.CategoryId;
 
-    var chartLabelsJson = JsonSerializer.Serialize(ViewBag.ChartLabels ?? new List<string>());
-    var chartValuesJson = JsonSerializer.Serialize(ViewBag.ChartValues ?? new List<decimal>());
+    string from = Model.Filters.From?.ToString("yyyy-MM-dd") ?? "";
+    string to = Model.Filters.To?.ToString("yyyy-MM-dd") ?? "";
+
+    decimal total = Model.TotalAmount;
+    int count = Model.ExpenseCount;
+    decimal average = Model.AverageAmount;
+
+    var categorySummary = Model.CategorySummary ?? new List<CategorySummaryVM>();
+
+    var chartLabelsJson = JsonSerializer.Serialize(Model.ChartLabels ?? new List<string>());
+    var chartValuesJson = JsonSerializer.Serialize(Model.ChartValues ?? new List<decimal>());
 
     var currency = Configuration["AppSettings:CurrencySymbol"] ?? "€";
 }
@@ -100,7 +99,7 @@
 	</div>
 }
 
-@if (!selectedCategoryId.HasValue && categorySummary.Any())
+@if (!Model.Filters.CategoryId.HasValue && categorySummary.Any())
 {
     <div class="row g-3 align-items-start mb-3">
         <div class="col-12 col-lg-7">
@@ -144,23 +143,15 @@
 <table class="table">
     <thead>
         <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.Category)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Date)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Amount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Description)
-            </th>
+            <th>Category</th>
+            <th>Date</th>
+            <th>Amount</th>
+            <th>Description</th>
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+@foreach (var item in Model.Expenses) {
         <tr>
             <td>
                 @Html.DisplayFor(modelItem => item.Category.Name)
