@@ -85,6 +85,50 @@
     </div>
 </form>
 
+@if (Model.ActivePlan != null)
+{
+    var p = Model.ActivePlan;
+
+    <div class="alert alert-success d-flex justify-content-between align-items-start">
+        <div>
+            <div class="fw-semibold">Active Saving Plan</div>
+            <div class="text-muted">
+                @p.StartDate.ToString("yyyy-MM-dd") – @p.EndDate.ToString("yyyy-MM-dd")
+                (to date through @p.EffectiveEnd.ToString("yyyy-MM-dd"))
+            </div>
+
+            <div class="mt-2">
+                <strong>Savings to date:</strong> @p.SavingsToDate.ToString("N2") @currency
+
+                @if (p.GoalToDate.HasValue && p.GoalToDate.Value > 0)
+                {
+                    <span class="ms-2">
+                        | <strong>Goal remaining:</strong>
+                       
+                        @if (p.GoalRemaining <= 0)
+                        {
+                            <span class="text-success">Goal achieved!</span>
+                        }
+                        else
+                        {
+                            <span>
+                                @((p.GoalRemaining ?? 0m).ToString("N2")) @currency
+                            </span>
+                        }
+                    </span>
+                }
+            </div>
+        </div>
+
+        <div class="text-end">
+            <a asp-controller="SavingPlans" asp-action="Details" asp-route-id="@p.PlanId"
+               class="btn btn-sm btn-outline-success">
+                View Dashboard
+            </a>
+        </div>
+    </div>
+}
+
 
 <div class="mb-3">
 	<strong>Total for selected period:</strong> @total.ToString("N2") @currency
@@ -95,7 +139,7 @@
     <div class="mb-3">
         <strong>Stats for selected category:  </strong>
         Number of expenses: @count  |
-		Average amount: @average.ToString("N2") @currency |
+		Average amount: @average.ToString("N2") @currency 
 	</div>
 }
 

@@ -9,7 +9,14 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
     <h1 class="mb-0">Saving Plans</h1>
-    <a asp-action="Create" class="btn btn-success">+ New Plan</a>
+    <div class="d-flex gap-2">
+        <a asp-action="Create" class="btn btn-success">+ New Plan</a>
+
+        <form asp-action="ClearActive" method="post" class="d-inline">
+            @Html.AntiForgeryToken()
+            <button type="submit" class="btn btn-outline-secondary">Clear Active</button>
+        </form>
+    </div>
 </div>
 
 @if (!Model.Any())
@@ -23,16 +30,27 @@ else
     <table class="table table-striped align-middle">
         <thead>
             <tr>
+                <th style="width: 90px;">Status</th>
                 <th>Period</th>
                 <th>Monthly Income</th>
                 <th>Monthly Savings Goal</th>
-                <th style="width: 220px;"></th>
+                <th style="width: 320px;"></th>
             </tr>
         </thead>
         <tbody>
         @foreach (var item in Model)
         {
             <tr>
+                <td>
+                        @if (item.IsActive)
+                        {
+                            <span class="badge bg-success">Active</span>
+                        }
+                        else
+                        {
+                            <span class="text-muted">—</span>
+                        }
+                </td>
                 <td>@item.StartDate.ToString("yyyy-MM-dd") – @item.EndDate.ToString("yyyy-MM-dd")</td>
                 <td>@item.ExpectedMonthlyIncome.ToString("N2") @currency</td>
                 <td>
@@ -41,9 +59,20 @@ else
                         : "-")
                 </td>
                 <td>
-                    <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                    <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                    <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                    @if (!item.IsActive)
+                    {
+                        <form asp-action="SetActive" asp-route-id="@item.Id" method="post" class="d-inline">
+                            @Html.AntiForgeryToken()
+                            <button type="submit" class="btn btn-sm btn-outline-success">Set Active</button>
+                        </form>
+                    }
+                    else
+                    {
+                        <span class="text-muted me-2">Active</span>
+                    }
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a> |
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a> |
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
                 </td>
             </tr>
         }

@@ -35,5 +35,7 @@ namespace ExpenseTrackerApp.Models
 
         [StringLength(300)]
         public string? Notes { get; set; }
+
+        public bool IsActive { get; set; }
     }
 }

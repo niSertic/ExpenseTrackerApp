@@ -204,6 +204,49 @@ namespace ExpenseTrackerApp.Controllers
             return RedirectToAction(nameof(Index));
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> SetActive(int id)
+        {
+            var userId = GetCurrentUserId();
+
+            var plan = await _context.SavingPlans
+                .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
+
+            if (plan == null) return NotFound();
+
+            // Make all user's plans inactive first 
+            var userPlans = await _context.SavingPlans
+                .Where(p => p.UserId == userId && p.IsActive)
+                .ToListAsync();
+
+            foreach (var p in userPlans)
+                p.IsActive = false;
+
+            // Activate selected plan
+            plan.IsActive = true;
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ClearActive()
+        {
+            var userId = GetCurrentUserId();
+
+            var activePlans = await _context.SavingPlans
+                .Where(p => p.UserId == userId && p.IsActive)
+                .ToListAsync();
+
+            foreach (var p in activePlans)
+                p.IsActive = false;
+
+            await _context.SaveChangesAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
         private bool SavingPlanExists(int id, string userId)
         {
             return _context.SavingPlans.Any(p => p.Id == id && p.UserId == userId);

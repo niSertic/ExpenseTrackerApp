@@ -20,5 +20,7 @@ namespace ExpenseTrackerApp.Models.ViewModels
 
         public List<string> ChartLabels { get; set; } = new();
         public List<decimal> ChartValues { get; set; } = new();
+
+        public ActiveSavingPlanBadgeVM? ActivePlan { get; set; }
     }
 }

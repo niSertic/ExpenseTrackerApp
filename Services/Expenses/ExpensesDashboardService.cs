@@ -1,21 +1,24 @@
-﻿using System;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Collections.Generic;
-using ExpenseTrackerApp.Data;
+﻿using ExpenseTrackerApp.Data;
 using ExpenseTrackerApp.Models;
 using ExpenseTrackerApp.Models.ViewModels;
+using ExpenseTrackerApp.Services.SavingPlans;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ExpenseTrackerApp.Services.Expenses
 {
     public class ExpensesDashboardService : IExpensesDashboardService
     {
         private readonly ApplicationDbContext _context;
+        private readonly ISavingPlanDashboardService _savingPlanDashboardService;
 
-        public ExpensesDashboardService(ApplicationDbContext context)
+        public ExpensesDashboardService(ApplicationDbContext context, ISavingPlanDashboardService savingPlanDashboardService)
         {
             _context = context;
+            _savingPlanDashboardService = savingPlanDashboardService;
         }
 
         public async Task<ExpensesIndexVM> BuildIndexAsync(string userId, ExpenseFiltersVM filters)
@@ -82,6 +85,39 @@ namespace ExpenseTrackerApp.Services.Expenses
                 .OrderBy(c => c.Name)
                 .ToListAsync();
 
+
+
+            // Active Saving Plan Badge
+            var activePlanId = await _context.SavingPlans
+            .AsNoTracking()
+            .Where(p => p.UserId == userId && p.IsActive)
+            .Select(p => (int?)p.Id)
+            .FirstOrDefaultAsync();
+
+            ActiveSavingPlanBadgeVM? badge = null;
+
+            if (activePlanId.HasValue)
+            {
+                var dash = await _savingPlanDashboardService.BuildAsync(activePlanId.Value, userId);
+                if (dash != null)
+                {
+                    decimal? goalRemaining = null;
+                    if (dash.GoalToDate.HasValue)
+                        goalRemaining = dash.GoalToDate.Value - dash.SavingsToDate;
+
+                    badge = new ActiveSavingPlanBadgeVM
+                    {
+                        PlanId = dash.Plan.Id,
+                        StartDate = dash.Plan.StartDate,
+                        EndDate = dash.Plan.EndDate,
+                        EffectiveEnd = dash.EffectiveEnd,
+                        SavingsToDate = dash.SavingsToDate,
+                        GoalToDate = dash.GoalToDate,
+                        GoalRemaining = goalRemaining,
+                    };
+                }
+            }
+
             return new ExpensesIndexVM
             {
                 Filters = filters,
@@ -93,8 +129,12 @@ namespace ExpenseTrackerApp.Services.Expenses
                 Categories = categories,
                 CategorySummary = categorySummary,
                 ChartLabels = categorySummary.Select(s => s.CategoryName).ToList(),
-                ChartValues = categorySummary.Select(s => s.TotalAmount).ToList()
+                ChartValues = categorySummary.Select(s => s.TotalAmount).ToList(),
+
+                ActivePlan = badge
             };
+
+            
         }
     }
 }
