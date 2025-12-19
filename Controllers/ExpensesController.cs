@@ -28,7 +28,9 @@ namespace ExpenseTrackerApp.Controllers
         private string GetCurrentUserId() => _userManager.GetUserId(User)!;
 
         // GET: Expenses
-        public async Task<IActionResult> Index(int? year, int? month, DateTime? from, DateTime? to, int? categoryId)
+        public async Task<IActionResult> Index(
+            int? year, int? month, DateTime? from, DateTime? to, int? categoryId,
+            string? sort, int page = 1, int pageSize = 30)
         {
             var userId = GetCurrentUserId();
 
@@ -38,7 +40,10 @@ namespace ExpenseTrackerApp.Controllers
                 Month = month,
                 From = from,
                 To = to,
-                CategoryId = categoryId
+                CategoryId = categoryId,
+                Sort = string.IsNullOrWhiteSpace(sort) ? "date_desc" : sort,
+                Page = page < 1 ? 1 : page,
+                PageSize = pageSize <= 0 ? 30 : pageSize
             };
 
             var vm = await _dashboardService.BuildIndexAsync(userId, filters);

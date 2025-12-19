@@ -30,6 +30,14 @@
 
 
     var currency = Configuration["AppSettings:CurrencySymbol"] ?? "€";
+
+    var page = Model.Page;
+    var pageSize = Model.PageSize;
+    var totalPages = Model.TotalPages;
+    var sort = Model.Filters.Sort ?? "date_desc";
+
+    string fromRoute = Model.Filters.From?.ToString("yyyy-MM-dd") ?? "";
+    string toRoute = Model.Filters.To?.ToString("yyyy-MM-dd") ?? "";
 }
 
 <h1>Expenses</h1>
@@ -82,6 +90,11 @@
         <label class="form-label">To</label>
         <input type="date" name="to" class="form-control" value="@to" />
     </div>
+
+	<!-- Preserve sorting and pagination state -->
+    <input type="hidden" name="sort" value="@sort" />
+    <input type="hidden" name="page" value="1" />
+    <input type="hidden" name="pageSize" value="@pageSize" />
 
     <div class="col-md-2 d-flex align-items-end">
         <button type="submit" class="btn btn-primary me-2">Filter</button>
@@ -216,10 +229,43 @@
 <table class="table">
     <thead>
         <tr>
-            <th>Category</th>
-            <th>Date</th>
-            <th>Amount</th>
-            <th>Description</th>
+            <th>
+                Category
+            </th>
+
+            <th>
+                <a asp-action="Index"
+                   asp-route-year="@Model.Filters.Year"
+                   asp-route-month="@Model.Filters.Month"
+                   asp-route-from="@fromRoute"
+                   asp-route-to="@toRoute"
+                   asp-route-categoryId="@Model.Filters.CategoryId"
+                   asp-route-page="1"
+                   asp-route-pageSize="@pageSize"
+                   asp-route-sort="@(sort == "date_asc" ? "date_desc" : "date_asc")"
+                   class="text-decoration-none">
+                    Date @(sort == "date_asc" ? "▲" : sort == "date_desc" ? "▼" : "")
+                </a>
+            </th>
+
+            <th>
+                <a asp-action="Index"
+                   asp-route-year="@Model.Filters.Year"
+                   asp-route-month="@Model.Filters.Month"
+                   asp-route-from="@fromRoute"
+                   asp-route-to="@toRoute"
+                   asp-route-categoryId="@Model.Filters.CategoryId"
+                   asp-route-page="1"
+                   asp-route-pageSize="@pageSize"
+                   asp-route-sort="@(sort == "amount_asc" ? "amount_desc" : "amount_asc")"
+                   class="text-decoration-none">
+                    Amount @(sort == "amount_asc" ? "▲" : sort == "amount_desc" ? "▼" : "")
+                </a>
+            </th>
+
+            <th>
+               Description
+            </th>
             <th></th>
         </tr>
     </thead>
@@ -247,6 +293,64 @@
 }
     </tbody>
 </table>
+
+<!-- Pagination -->
+@if (totalPages > 1)
+{
+    <nav aria-label="Expenses pages" class="mt-3">
+        <ul class="pagination">
+
+            <li class="page-item @(page <= 1 ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-year="@Model.Filters.Year"
+                   asp-route-month="@Model.Filters.Month"
+                   asp-route-from="@fromRoute"
+                   asp-route-to="@toRoute"
+                   asp-route-categoryId="@Model.Filters.CategoryId"
+                   asp-route-sort="@sort"
+                   asp-route-page="@(page - 1)"
+                   asp-route-pageSize="@pageSize">
+                    Prev
+                </a>
+            </li>
+
+            @for (int p = 1; p <= totalPages; p++)
+            {
+                <li class="page-item @(p == page ? "active" : "")">
+                    <a class="page-link"
+                       asp-action="Index"
+                       asp-route-year="@Model.Filters.Year"
+                       asp-route-month="@Model.Filters.Month"
+                       asp-route-from="@fromRoute"
+                       asp-route-to="@toRoute"
+                       asp-route-categoryId="@Model.Filters.CategoryId"
+                       asp-route-sort="@sort"
+                       asp-route-page="@p"
+                       asp-route-pageSize="@pageSize">
+                        @p
+                    </a>
+                </li>
+            }
+
+            <li class="page-item @(page >= totalPages ? "disabled" : "")">
+                <a class="page-link"
+                   asp-action="Index"
+                   asp-route-year="@Model.Filters.Year"
+                   asp-route-month="@Model.Filters.Month"
+                   asp-route-from="@fromRoute"
+                   asp-route-to="@toRoute"
+                   asp-route-categoryId="@Model.Filters.CategoryId"
+                   asp-route-sort="@sort"
+                   asp-route-page="@(page + 1)"
+                   asp-route-pageSize="@pageSize">
+                    Next
+                </a>
+            </li>
+
+        </ul>
+    </nav>
+}
 
 @section Scripts {
     <script>

@@ -25,5 +25,10 @@ namespace ExpenseTrackerApp.Models.ViewModels
 
         public List<string> TrendLabels { get; set; } = new();
         public List<decimal> TrendValues { get; set; } = new();
+
+        public int Page { get; set; }
+        public int PageSize { get; set; }
+        public int TotalItems { get; set; }
+        public int TotalPages => PageSize <= 0 ? 1 : (int)Math.Ceiling((double)TotalItems / PageSize);
     }
 }

@@ -23,7 +23,7 @@ namespace ExpenseTrackerApp.Services.Expenses
 
         public async Task<ExpensesIndexVM> BuildIndexAsync(string userId, ExpenseFiltersVM filters)
         {
-            
+            // Filtering
             var filtered = _context.Expenses
                 .AsNoTracking()
                 .Where(e => e.UserId == userId);
@@ -43,22 +43,51 @@ namespace ExpenseTrackerApp.Services.Expenses
             if (filters.CategoryId.HasValue)
                 filtered = filtered.Where(e => e.CategoryId == filters.CategoryId.Value);
 
-            
-            var expenses = await filtered
+
+            // TotalItems for pagination 
+            var totalItems = await filtered.CountAsync();
+
+            // Sorting
+            IQueryable<Expense> sorted = filtered;
+
+            switch (filters.Sort?.ToLowerInvariant())
+            {
+                case "date_asc":
+                    sorted = sorted.OrderBy(e => e.Date).ThenBy(e => e.Id);
+                    break;
+                case "amount_asc":
+                    sorted = sorted.OrderBy(e => e.Amount).ThenByDescending(e => e.Date).ThenBy(e => e.Id);
+                    break;
+                case "amount_desc":
+                    sorted = sorted.OrderByDescending(e => e.Amount).ThenByDescending(e => e.Date).ThenBy(e => e.Id);
+                    break;
+                case "date_desc":
+                default:
+                    sorted = sorted.OrderByDescending(e => e.Date).ThenByDescending(e => e.Id);
+                    break;
+            }
+
+            // Paging (table only)
+            var page = filters.Page < 1 ? 1 : filters.Page;
+            var pageSize = filters.PageSize <= 0 ? 30 : filters.PageSize;
+            var skip = (page - 1) * pageSize;
+
+            // Paged expenses
+            var expenses = await sorted
                 .Include(e => e.Category)
-                .OrderByDescending(e => e.Date)
+                .Skip(skip)
+                .Take(pageSize)
                 .ToListAsync();
 
-           
+            // Summary statistics
             var total = await filtered.SumAsync(e => (decimal?)e.Amount) ?? 0m;
-            var count = await filtered.CountAsync();
+            var count = totalItems;
             var average = count > 0 ? await filtered.AverageAsync(e => (decimal?)e.Amount) ?? 0m : 0m;
 
-
+            // Category summary 
             var categorySummary = new List<CategorySummaryVM>();
             var chartLabels = new List<string>();
             var chartValues = new List<decimal>();
-
 
             if (!filters.CategoryId.HasValue)
             {
@@ -205,7 +234,11 @@ namespace ExpenseTrackerApp.Services.Expenses
                 TrendLabels = trendLabels,
                 TrendValues = trendValues,
 
-                ActivePlan = badge
+                ActivePlan = badge,
+
+                Page = page,
+                PageSize = pageSize,
+                TotalItems = totalItems,
             };
 
             
