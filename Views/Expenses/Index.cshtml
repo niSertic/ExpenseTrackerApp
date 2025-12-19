@@ -25,6 +25,10 @@
     var chartLabelsJson = JsonSerializer.Serialize(Model.ChartLabels ?? new List<string>());
     var chartValuesJson = JsonSerializer.Serialize(Model.ChartValues ?? new List<decimal>());
 
+    var trendLabelsJson = JsonSerializer.Serialize(Model.TrendLabels ?? new List<string>());
+    var trendValuesJson = JsonSerializer.Serialize(Model.TrendValues ?? new List<decimal>());
+
+
     var currency = Configuration["AppSettings:CurrencySymbol"] ?? "€";
 }
 
@@ -85,6 +89,7 @@
     </div>
 </form>
 
+<!-- Active saving plan badge-->
 @if (Model.ActivePlan != null)
 {
     var p = Model.ActivePlan;
@@ -129,11 +134,12 @@
     </div>
 }
 
-
+<!-- Total amount for the selected period -->
 <div class="mb-3">
 	<strong>Total for selected period:</strong> @total.ToString("N2") @currency
 </div>
 
+<!-- Stats when category is selected-->
 @if (selectedCategoryId.HasValue)
 {
     <div class="mb-3">
@@ -143,6 +149,28 @@
 	</div>
 }
 
+<!-- Monthly trend chart-->
+@if ((Model.TrendLabels?.Any() ?? false) && (Model.TrendValues?.Any() ?? false))
+{
+    <div class="mb-3">
+        <button class="btn btn-outline-primary"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#trendCollapse"
+                aria-expanded="false"
+                aria-controls="trendCollapse">
+            Show Monthly Trend Chart
+        </button>
+    </div>
+
+    <div class="collapse mb-3" id="trendCollapse">
+        <div class="border rounded p-2" style="max-width: 900px; height: 260px;">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+}
+
+<!-- Category summary and pie chart -->
 @if (!Model.Filters.CategoryId.HasValue && categorySummary.Any())
 {
     <div class="row g-3 align-items-start mb-3">
@@ -184,6 +212,7 @@
     <a asp-action="Create" class="btn btn-success">Create New</a>
 </p>
 
+<!-- Expenses table -->
 <table class="table">
     <thead>
         <tr>
@@ -222,25 +251,24 @@
 @section Scripts {
     <script>
         (function () {
-            const canvas = document.getElementById('categoryChart');
-            if (!canvas) return;
-
-            const labels = @Html.Raw(chartLabelsJson);
-            const values = @Html.Raw(chartValuesJson);
             const currency = @Html.Raw(JsonSerializer.Serialize(currency));
 
-            new Chart(canvas, {
-                type: 'pie',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        data: values
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    plugins: {
-                        legend: { position: 'bottom' },
+            // Pie chart 
+            const pieCanvas = document.getElementById('categoryChart');
+            if (pieCanvas) {
+                const labels = @Html.Raw(chartLabelsJson);
+                const values = @Html.Raw(chartValuesJson);
+
+                new Chart(pieCanvas, {
+                    type: 'pie',
+                    data: {
+                        labels: labels,
+                        datasets: [{ data: values }]
+                    },
+                    options: {
+                        responsive: true,
+                        plugins: {
+                            legend: { position: 'bottom' },
                             tooltip: {
                                 callbacks: {
                                     label: function (ctx) {
@@ -248,11 +276,64 @@
                                         return `${ctx.label}: ${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
                                     }
                                 }
-                           }
+                            }
+                        }
                     }
+                });
+            }
+
+            // Trend chart
+            let trendChartInstance = null;
+
+            function buildTrendChart() {
+                const trendCanvas = document.getElementById('trendChart');
+                if (!trendCanvas) return;
+
+                
+                if (trendChartInstance) {
+                    trendChartInstance.resize();
+                    return;
                 }
-        });
+
+                const tLabels = @Html.Raw(trendLabelsJson);
+                const tValues = @Html.Raw(trendValuesJson);
+
+                trendChartInstance = new Chart(trendCanvas, {
+                    type: 'line',
+                    data: {
+                        labels: tLabels,
+                        datasets: [{
+                            data: tValues,
+                            tension: 0.25
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: function (ctx) {
+                                        const v = ctx.raw ?? 0;
+                                        return `${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            
+            const trendCollapse = document.getElementById('trendCollapse');
+            if (trendCollapse) {
+                trendCollapse.addEventListener('shown.bs.collapse', buildTrendChart);
+            } else {
+                
+                buildTrendChart();
+            }
         })();
-    </script>
+	</script>
 
 }

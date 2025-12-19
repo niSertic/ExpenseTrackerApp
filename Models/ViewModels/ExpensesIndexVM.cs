@@ -1,5 +1,5 @@
 ﻿using System.Collections.Generic;
-using ExpenseTrackerApp.Models;
+
 
 namespace ExpenseTrackerApp.Models.ViewModels
 {
@@ -22,5 +22,8 @@ namespace ExpenseTrackerApp.Models.ViewModels
         public List<decimal> ChartValues { get; set; } = new();
 
         public ActiveSavingPlanBadgeVM? ActivePlan { get; set; }
+
+        public List<string> TrendLabels { get; set; } = new();
+        public List<decimal> TrendValues { get; set; } = new();
     }
 }

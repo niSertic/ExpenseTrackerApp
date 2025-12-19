@@ -24,42 +24,50 @@ namespace ExpenseTrackerApp.Services.Expenses
         public async Task<ExpensesIndexVM> BuildIndexAsync(string userId, ExpenseFiltersVM filters)
         {
             
-            var query = _context.Expenses
+            var filtered = _context.Expenses
                 .AsNoTracking()
-                .Include(e => e.Category)
                 .Where(e => e.UserId == userId);
 
             if (filters.Year.HasValue)
-                query = query.Where(e => e.Date.Year == filters.Year.Value);
+                filtered = filtered.Where(e => e.Date.Year == filters.Year.Value);
 
             if (filters.Month.HasValue)
-                query = query.Where(e => e.Date.Month == filters.Month.Value);
+                filtered = filtered.Where(e => e.Date.Month == filters.Month.Value);
 
             if (filters.From.HasValue)
-                query = query.Where(e => e.Date.Date >= filters.From.Value.Date);
+                filtered = filtered.Where(e => e.Date.Date >= filters.From.Value.Date);
 
             if (filters.To.HasValue)
-                query = query.Where(e => e.Date.Date <= filters.To.Value.Date);
+                filtered = filtered.Where(e => e.Date.Date <= filters.To.Value.Date);
 
             if (filters.CategoryId.HasValue)
-                query = query.Where(e => e.CategoryId == filters.CategoryId.Value);
+                filtered = filtered.Where(e => e.CategoryId == filters.CategoryId.Value);
 
             
-            var expenses = await query
+            var expenses = await filtered
+                .Include(e => e.Category)
                 .OrderByDescending(e => e.Date)
                 .ToListAsync();
 
            
-            var total = expenses.Sum(e => e.Amount);
-            var count = expenses.Count;
-            var average = count > 0 ? expenses.Average(e => e.Amount) : 0m;
+            var total = await filtered.SumAsync(e => (decimal?)e.Amount) ?? 0m;
+            var count = await filtered.CountAsync();
+            var average = count > 0 ? await filtered.AverageAsync(e => (decimal?)e.Amount) ?? 0m : 0m;
 
-            
+
             var categorySummary = new List<CategorySummaryVM>();
-            if (!filters.CategoryId.HasValue && expenses.Any())
+            var chartLabels = new List<string>();
+            var chartValues = new List<decimal>();
+
+
+            if (!filters.CategoryId.HasValue)
             {
-                categorySummary = expenses
-                    .GroupBy(e => e.Category.Name)
+                categorySummary = await filtered
+                    .Join(_context.Categories.AsNoTracking(),
+                        e => e.CategoryId,
+                        c => c.Id,
+                        (e, c) => new { e.Amount, c.Name })
+                    .GroupBy(x => x.Name)
                     .Select(g => new CategorySummaryVM
                     {
                         CategoryName = g.Key,
@@ -67,8 +75,67 @@ namespace ExpenseTrackerApp.Services.Expenses
                         Percentage = total > 0 ? (g.Sum(x => x.Amount) / total) * 100m : 0m
                     })
                     .OrderByDescending(s => s.TotalAmount)
-                    .ToList();
+                    .ToListAsync();
+
+                chartLabels = categorySummary.Select(s => s.CategoryName).ToList();
+                chartValues = categorySummary.Select(s => s.TotalAmount).ToList();
             }
+
+            // Monthly trend 
+            var trendLabels = new List<string>();
+            var trendValues = new List<decimal>();
+
+           
+            if (!filters.Month.HasValue)
+            {
+                DateTime start;
+                DateTime end;
+
+                if (filters.From.HasValue || filters.To.HasValue)
+                {
+                    start = filters.From ?? filters.To!.Value;
+                    end = filters.To ?? filters.From!.Value;
+                }
+                else if (filters.Year.HasValue)
+                {
+                    start = new DateTime(filters.Year.Value, 1, 1);
+                    end = new DateTime(filters.Year.Value, 12, 31);
+                }
+                else
+                {
+                    
+                    start = new DateTime(DateTime.Today.Year, DateTime.Today.Month, 1).AddMonths(-11);
+                    end = DateTime.Today;
+                }
+
+                
+                var grouped = await filtered
+                    .Where(e => e.Date >= start && e.Date <= end)
+                    .GroupBy(e => new { e.Date.Year, e.Date.Month })
+                    .Select(g => new
+                    {
+                        g.Key.Year,
+                        g.Key.Month,
+                        Total = g.Sum(x => x.Amount)
+                    })
+                    .ToListAsync();
+
+                
+                var cursor = new DateTime(start.Year, start.Month, 1);
+                var lastMonth = new DateTime(end.Year, end.Month, 1);
+
+                while (cursor <= lastMonth)
+                {
+                    var match = grouped.FirstOrDefault(x =>
+                        x.Year == cursor.Year && x.Month == cursor.Month);
+
+                    trendLabels.Add($"{cursor.Year:D4}-{cursor.Month:D2}");
+                    trendValues.Add(match?.Total ?? 0m);
+
+                    cursor = cursor.AddMonths(1);
+                }
+            }
+
 
             // Dropdowns
             var years = await _context.Expenses
@@ -121,15 +188,22 @@ namespace ExpenseTrackerApp.Services.Expenses
             return new ExpensesIndexVM
             {
                 Filters = filters,
+
                 Expenses = expenses,
+
                 TotalAmount = total,
                 ExpenseCount = count,
                 AverageAmount = average,
+
                 Years = years,
                 Categories = categories,
+
                 CategorySummary = categorySummary,
                 ChartLabels = categorySummary.Select(s => s.CategoryName).ToList(),
                 ChartValues = categorySummary.Select(s => s.TotalAmount).ToList(),
+
+                TrendLabels = trendLabels,
+                TrendValues = trendValues,
 
                 ActivePlan = badge
             };
