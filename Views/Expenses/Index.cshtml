@@ -13,8 +13,8 @@
     var selectedMonth = Model.Filters.Month;
     var selectedCategoryId = Model.Filters.CategoryId;
 
-    string from = Model.Filters.From?.ToString("yyyy-MM-dd") ?? "";
-    string to = Model.Filters.To?.ToString("yyyy-MM-dd") ?? "";
+    string from = Model.Filters.From?.ToString("dd.MM.yyyy") ?? "";
+    string to = Model.Filters.To?.ToString("dd.MM.yyyy") ?? "";
 
     decimal total = Model.TotalAmount;
     int count = Model.ExpenseCount;
@@ -36,8 +36,8 @@
     var totalPages = Model.TotalPages;
     var sort = Model.Filters.Sort ?? "date_desc";
 
-    string fromRoute = Model.Filters.From?.ToString("yyyy-MM-dd") ?? "";
-    string toRoute = Model.Filters.To?.ToString("yyyy-MM-dd") ?? "";
+    string fromRoute = Model.Filters.From?.ToString("dd.MM.yyyy") ?? "";
+    string toRoute = Model.Filters.To?.ToString("dd.MM.yyyy") ?? "";
 }
 
 <h1>Expenses</h1>
@@ -111,8 +111,8 @@
         <div>
             <div class="fw-semibold">Active Saving Plan</div>
             <div class="text-muted">
-                @p.StartDate.ToString("yyyy-MM-dd") – @p.EndDate.ToString("yyyy-MM-dd")
-                (to date through @p.EffectiveEnd.ToString("yyyy-MM-dd"))
+                @p.StartDate.ToString("dd.MM.yyyy") – @p.EndDate.ToString("dd.MM.yyyy")
+                (to date through @p.EffectiveEnd.ToString("dd.MM.yyyy"))
             </div>
 
             <div class="mt-2">

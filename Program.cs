@@ -33,8 +33,8 @@ namespace ExpenseTrackerApp
 
             builder.Services.AddLocalization(); // optional for future resource localization
 
-            //Set application culture to en-US to fix decimal point/comma issues
-            var defaultCulture = new CultureInfo("en-US");
+            //Use en-GB: decimal '.' + European date format (dd/MM/yyyy)
+            var defaultCulture = new CultureInfo("en-GB");
             var supportedCultures = new[] { defaultCulture };
 
             var localizationOptions = new RequestLocalizationOptions
