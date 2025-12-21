@@ -51,28 +51,6 @@ namespace ExpenseTrackerApp.Controllers
             return View(vm);
         }
 
-        // GET: Expenses/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var userId = GetCurrentUserId();
-
-            var expense = await _context.Expenses
-                .Include(e => e.Category)
-                .FirstOrDefaultAsync(m => m.Id == id && m.UserId == userId);
-
-            if (expense == null)
-            {
-                return NotFound();
-            }
-
-            return View(expense);
-        }
-
         // GET: Expenses/Create
         public async Task<IActionResult> Create()
         {

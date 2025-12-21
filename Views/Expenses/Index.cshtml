@@ -40,7 +40,11 @@
     string toRoute = Model.Filters.To?.ToString("dd.MM.yyyy") ?? "";
 }
 
-<h1>Expenses</h1>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Expenses</h1>
+    <a asp-action="Create" class="btn btn-success">+ New Expense</a>
+</div>
 
 <!-- Filter form -->
 <form asp-action="Index" method="get" class="row g-2 mb-3">
@@ -102,12 +106,67 @@
     </div>
 </form>
 
+<!-- Total amount for the selected period -->
+<div class="mb-3">
+    <strong>Total for selected period:</strong> @total.ToString("N2") @currency
+</div>
+
+<!-- Stats when category is selected-->
+@if (selectedCategoryId.HasValue)
+{
+    <div class="mb-3">
+        <strong>Stats for selected category:  </strong>
+        Number of expenses: @count  |
+        Average amount: @average.ToString("N2") @currency
+    </div>
+}
+
+<hr />
+<!-- Category summary and pie chart -->
+@if (!Model.Filters.CategoryId.HasValue && categorySummary.Any())
+{
+    <div class="row g-3 align-items-start mb-3">
+        <div class="col-12 col-lg-7">
+
+            <h4>Summary by Category</h4>
+
+            <table class="table table-sm table-bordered mb-0">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Total Amount</th>
+                        <th>Share (%)</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in categorySummary)
+                    {
+                        <tr>
+                            <td>@s.CategoryName</td>
+                            <td>@s.TotalAmount.ToString("N2") @currency</td>
+                            <td>@s.Percentage.ToString("0.##") %</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="col-12 col-lg-5">
+            <h4 class="mb-2">Spending Chart</h4>
+
+            <div class="border rounded p-2" style="max-width: 360px;">
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+}
+
+
 <!-- Active saving plan badge-->
 @if (Model.ActivePlan != null)
 {
     var p = Model.ActivePlan;
 
-    <div class="alert alert-success d-flex justify-content-between align-items-start">
+    <div class="alert alert-success d-flex justify-content-between align-items-start fs-6">
         <div>
             <div class="fw-semibold">Active Saving Plan</div>
             <div class="text-muted">
@@ -147,20 +206,6 @@
     </div>
 }
 
-<!-- Total amount for the selected period -->
-<div class="mb-3">
-	<strong>Total for selected period:</strong> @total.ToString("N2") @currency
-</div>
-
-<!-- Stats when category is selected-->
-@if (selectedCategoryId.HasValue)
-{
-    <div class="mb-3">
-        <strong>Stats for selected category:  </strong>
-        Number of expenses: @count  |
-		Average amount: @average.ToString("N2") @currency 
-	</div>
-}
 
 <!-- Monthly trend chart-->
 @if ((Model.TrendLabels?.Any() ?? false) && (Model.TrendValues?.Any() ?? false))
@@ -183,56 +228,18 @@
     </div>
 }
 
-<!-- Category summary and pie chart -->
-@if (!Model.Filters.CategoryId.HasValue && categorySummary.Any())
-{
-    <div class="row g-3 align-items-start mb-3">
-        <div class="col-12 col-lg-7">
+<hr />
 
-            <h4>Summary by Category</h4>
-
-            <table class="table table-sm table-bordered mb-0">
-                <thead>
-                    <tr>
-                        <th>Category</th>
-                        <th>Total Amount</th>
-                        <th>Share (%)</th>
-                    </tr>
-                </thead>
-                <tbody>
-                @foreach (var s in categorySummary)
-                {
-                    <tr>
-                        <td>@s.CategoryName</td>
-                        <td>@s.TotalAmount.ToString("N2") @currency</td>
-                        <td>@s.Percentage.ToString("0.##") %</td>
-                    </tr>
-                }
-                </tbody>
-            </table>
-        </div>
-        <div class="col-12 col-lg-5">
-            <h4 class="mb-2">Spending Chart</h4>
-
-            <div class="border rounded p-2" style="max-width: 360px;">
-                <canvas id="categoryChart"></canvas>
-            </div>
-		</div>
-	</div>
-}
 
 <p>
-    <a asp-action="Create" class="btn btn-success">Create New</a>
+    <a asp-action="Create" class="btn btn-success">+ New Expense</a>
 </p>
 
 <!-- Expenses table -->
 <table class="table">
     <thead>
         <tr>
-            <th>
-                Category
-            </th>
-
+            
             <th>
                 <a asp-action="Index"
                    asp-route-year="@Model.Filters.Year"
@@ -246,6 +253,10 @@
                    class="text-decoration-none">
                     Date @(sort == "date_asc" ? "▲" : sort == "date_desc" ? "▼" : "")
                 </a>
+            </th>
+
+            <th>
+                Category
             </th>
 
             <th>
@@ -272,11 +283,12 @@
     <tbody>
 @foreach (var item in Model.Expenses) {
         <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.Category.Name)
-            </td>
+            
             <td>
                 @Html.DisplayFor(modelItem => item.Date)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Category.Name)
             </td>
             <td>
                 @item.Amount.ToString("N2") @currency
@@ -284,10 +296,9 @@
             <td>
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.Id">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.Id">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.Id">Delete</a>
+                <td class="text-end">
+                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>  
+                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
             </td>
         </tr>
 }
