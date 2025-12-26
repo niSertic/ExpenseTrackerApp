@@ -1,12 +1,13 @@
+using ExpenseTrackerApp.Data;
+using ExpenseTrackerApp.Models;
+using ExpenseTrackerApp.Services.Expenses;
+using ExpenseTrackerApp.Services.Home;
+using ExpenseTrackerApp.Services.SavingPlans;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Localization;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Globalization;
-using Microsoft.AspNetCore.Localization;
-using ExpenseTrackerApp.Data;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
-using ExpenseTrackerApp.Models;
-using ExpenseTrackerApp.Services.SavingPlans;
-using ExpenseTrackerApp.Services.Expenses;
 
 namespace ExpenseTrackerApp
 {
@@ -30,6 +31,7 @@ namespace ExpenseTrackerApp
             builder.Services.AddControllersWithViews();
             builder.Services.AddScoped<ISavingPlanDashboardService, SavingPlanDashboardService>();
             builder.Services.AddScoped<IExpensesDashboardService, ExpensesDashboardService>();
+            builder.Services.AddScoped<IHomeDashboardService, HomeDashboardService>();
 
             builder.Services.AddLocalization(); // optional for future resource localization
 

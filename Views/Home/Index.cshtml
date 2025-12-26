@@ -1,8 +1,118 @@
-﻿@{
+﻿@using System.Text.Json
+@using ExpenseTrackerApp.Models.ViewModels
+@model HomeDashboardVM
+
+
+@{
     ViewData["Title"] = "Home Page";
+
+    var currency = Configuration["AppSettings:CurrencySymbol"] ?? "€";
+
+    var trendLabelsJson = JsonSerializer.Serialize(Model.TrendLabels ?? new List<string>());
+    var trendValuesJson = JsonSerializer.Serialize(Model.TrendValues ?? new List<decimal>());
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="mb-0">Welcome To Expense Tracker</h1>
 </div>
+<br />
+<br />
+<br />
+
+
+<div class="row g-3 mb-3 align-items-stretch">
+    <div class="col-12 col-md-4 col-lg-3">
+        <div class="border rounded p-3 h-100">
+            <div class="text-muted">Spent this month</div>
+            <div class="fs-4 fw-semibold">
+                @Model.CurrentMonthSpent.ToString("N2") @currency
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-4 col-lg-3">
+        <div class="border rounded p-3 h-100">
+            <div class="text-muted">Expenses this month</div>
+            <div class="fs-4 fw-semibold">
+                @Model.CurrentMonthExpenseCount
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-4 col-lg-6">
+        <div class="border rounded p-3 h-100">
+            <div class="text-muted">Quick actions</div>
+            <div class="mt-2 d-flex flex-wrap gap-2">
+                <a asp-controller="Expenses" asp-action="Create" class="btn btn-success btn-sm">
+                    + Add Expense
+                </a>
+                <a asp-controller="Expenses" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                    View Expenses
+                </a>
+                <a asp-controller="SavingPlans" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                    Saving Plans
+                </a>
+                <a asp-controller="Categories" asp-action="Index" class="btn btn-outline-secondary btn-sm">
+                    Categories
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+    
+
+
+
+@if ((Model.TrendLabels?.Any() ?? false) && (Model.TrendValues?.Any() ?? false))
+{
+    <div class="border rounded p-3">
+        <div class="d-flex justify-content-between align-items-center mb-2">
+            <h4 class="mb-0">Your spending in last 6 months</h4>
+        </div>
+
+        <div style="max-width: 900px; height: 260px;">
+            <canvas id="homeTrendChart"></canvas>
+        </div>
+    </div>
+}
+
+
+
+@section Scripts {
+    <script>
+        (function () {
+            const canvas = document.getElementById('homeTrendChart');
+            if (!canvas) return;
+
+            const labels = @Html.Raw(trendLabelsJson);
+            const values = @Html.Raw(trendValuesJson);
+            const currency = @Html.Raw(JsonSerializer.Serialize(currency));
+
+            new Chart(canvas, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: values,
+                        tension: 0.25
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function (ctx) {
+                                    const v = ctx.raw ?? 0;
+                                    return `${v.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} ${currency}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        })();
+    </script>
+}

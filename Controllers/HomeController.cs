@@ -1,21 +1,32 @@
-using System.Diagnostics;
 using ExpenseTrackerApp.Models;
+using ExpenseTrackerApp.Services.Home;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Diagnostics;
 
 namespace ExpenseTrackerApp.Controllers
 {
+    [Authorize]
     public class HomeController : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly UserManager<ApplicationUser> _userManager;
+        private readonly IHomeDashboardService _homeDashboardService;
 
-        public HomeController(ILogger<HomeController> logger)
+        public HomeController(UserManager<ApplicationUser> userManager, IHomeDashboardService homeDashboardService)
         {
-            _logger = logger;
+            _userManager = userManager;
+            _homeDashboardService = homeDashboardService;
+
         }
 
-        public IActionResult Index()
+        private string GetCurrentUserId() => _userManager.GetUserId(User)!;
+
+        public async Task<IActionResult> Index()
         {
-            return View();
+            var userId = GetCurrentUserId();
+            var vm = await _homeDashboardService.BuildAsync(userId);
+            return View(vm);
         }
 
         public IActionResult Privacy()
@@ -23,10 +34,5 @@ namespace ExpenseTrackerApp.Controllers
             return View();
         }
 
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
     }
 }
