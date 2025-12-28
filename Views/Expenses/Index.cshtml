@@ -38,6 +38,16 @@
 
     string fromRoute = Model.Filters.From?.ToString("yyyy-MM-dd") ?? "";
     string toRoute = Model.Filters.To?.ToString("yyyy-MM-dd") ?? "";
+
+	// Get selected category name
+    string? selectedCategoryName = null;
+
+    if (selectedCategoryId.HasValue)
+    {
+        selectedCategoryName = categories
+        .FirstOrDefault(c => c.Id == selectedCategoryId.Value)
+        ?.Name;
+	}
 }
 
 
@@ -107,17 +117,46 @@
 </form>
 
 <!-- Total amount for the selected period -->
-<div class="mb-3">
-    <strong>Total for selected period:</strong> @total.ToString("N2") @currency
+<div class="col-12 col-md-4 col-lg-2">
+    <div class="border rounded p-1 h-100">
+        <div class="text-muted fs-6">Total spent</div>
+        <div class="fs-5 fw-semibold">
+            @total.ToString("N2") @currency
+        </div>
+    </div>
 </div>
 
 <!-- Stats when category is selected-->
-@if (selectedCategoryId.HasValue)
+@if (selectedCategoryId.HasValue && selectedCategoryName != null)
 {
-    <div class="mb-3">
-        <strong>Stats for selected category:  </strong>
-        Number of expenses: @count  |
-        Average amount: @average.ToString("N2") @currency
+    
+    <hr />
+    <div class="fw-semibold fs-5 align-items-center">
+        @selectedCategoryName category stats:
+    </div>
+    <br /> 
+    <div class="row g-2 mb-3">
+        <div class="col-12 col-md-4 col-lg-2">
+            <div class="border rounded p-1 h-100">
+                <div class="text-muted fs-6">
+                    Number of expenses
+                </div>
+                <div class="fw-semibold">
+                    @count
+                </div>
+            </div>
+        </div>
+
+        <div class="col-12 col-md-4 col-lg-2">
+            <div class="border rounded p-1 h-100">
+                <div class="text-muted fs-6">
+                    Average amount
+                </div>
+                <div class="fw-semibold">
+                    @average.ToString("N2") @currency
+                </div>
+            </div>
+        </div>
     </div>
 }
 
@@ -160,6 +199,26 @@
     </div>
 }
 
+<!-- Monthly trend chart-->
+@if ((Model.TrendLabels?.Any() ?? false) && (Model.TrendValues?.Any() ?? false))
+{
+    <div class="mb-3">
+        <button class="btn btn-outline-primary"
+                type="button"
+                data-bs-toggle="collapse"
+                data-bs-target="#trendCollapse"
+                aria-expanded="false"
+                aria-controls="trendCollapse">
+            Show Monthly Trend Chart
+        </button>
+    </div>
+
+    <div class="collapse mb-3" id="trendCollapse">
+        <div class="border rounded p-2" style="max-width: 900px; height: 260px;">
+            <canvas id="trendChart"></canvas>
+        </div>
+    </div>
+}
 
 <!-- Active saving plan badge-->
 @if (Model.ActivePlan != null)
@@ -207,27 +266,6 @@
 }
 
 
-<!-- Monthly trend chart-->
-@if ((Model.TrendLabels?.Any() ?? false) && (Model.TrendValues?.Any() ?? false))
-{
-    <div class="mb-3">
-        <button class="btn btn-outline-primary"
-                type="button"
-                data-bs-toggle="collapse"
-                data-bs-target="#trendCollapse"
-                aria-expanded="false"
-                aria-controls="trendCollapse">
-            Show Monthly Trend Chart
-        </button>
-    </div>
-
-    <div class="collapse mb-3" id="trendCollapse">
-        <div class="border rounded p-2" style="max-width: 900px; height: 260px;">
-            <canvas id="trendChart"></canvas>
-        </div>
-    </div>
-}
-
 <hr />
 
 
@@ -236,7 +274,7 @@
 </p>
 
 <!-- Expenses table -->
-<table class="table">
+<table class="table table-striped">
     <thead>
         <tr>
             
@@ -297,8 +335,10 @@
                 @Html.DisplayFor(modelItem => item.Description)
             </td>
                 <td class="text-end">
-                    <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>  
-                    <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                    <div class="d-inline-flex gap-1">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary action-btn">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger action-btn">Delete</a>
+                    </div>
             </td>
         </tr>
 }

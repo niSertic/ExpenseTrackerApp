@@ -1,16 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using ExpenseTrackerApp.Data;
+using ExpenseTrackerApp.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using ExpenseTrackerApp.Data;
-using ExpenseTrackerApp.Models;
-using Microsoft.AspNetCore.Identity;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace ExpenseTrackerApp.Controllers
 {
+    [Authorize]
     public class CategoriesController : Controller
     {
         private readonly ApplicationDbContext _context;
@@ -194,21 +196,23 @@ namespace ExpenseTrackerApp.Controllers
             var userId = GetCurrentUserId();
 
             var category = await _context.Categories
-                .Include(c => c.Expenses)
                 .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
 
-            if (category != null)
-            {
-                // Prevent deletion in case of existing expenses
-                if (category.Expenses != null && category.Expenses.Any())
-                {
-                    ModelState.AddModelError(string.Empty, "Cannot delete a category that has expenses.");
-                    return View(category);
-                }
+            if (category == null)
+                return NotFound();
 
-                _context.Categories.Remove(category);
-                await _context.SaveChangesAsync();
+            var hasExpenses = await _context.Expenses
+                .AnyAsync(e => e.UserId == userId && e.CategoryId == id);
+
+            // Prevent deletion in case of existing expenses
+            if (hasExpenses)
+            {
+                ModelState.AddModelError(string.Empty, "Cannot delete a category that has expenses.");
+                return View("Delete", category); 
             }
+
+            _context.Categories.Remove(category);
+            await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
         }

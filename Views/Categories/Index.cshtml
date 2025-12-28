@@ -16,11 +16,11 @@
 @if (myCategories.Any())
 {
     <h4 class="mt-3">My Categories</h4>
-    <table class="table table-striped align-middle">
+    <table class="table table-striped">
         <thead>
             <tr>
                 <th>Name</th>
-                <th style="width: 180px;"></th>
+                <th></th>
             </tr>
         </thead>
         <tbody>
@@ -28,10 +28,14 @@
         {
             <tr>
                 <td>@item.Name</td>
+                    
                 <td class="text-end">
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a>
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                    <div class="d-inline-flex gap-1">
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary action-btn">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger action-btn">Delete</a>
+                    </div>
                 </td>
+                
             </tr>
         }
         </tbody>
@@ -44,12 +48,12 @@ else
     </div>
 }
 
-<h4 class="mt-4">Global Categories</h4>
+<h4 class="mt-4">Default Categories</h4>
 <table class="table table-striped align-middle">
     <thead>
         <tr>
             <th>Name</th>
-            <th style="width: 180px;"></th>
+            <th></th>
         </tr>
     </thead>
     <tbody>
@@ -57,9 +61,7 @@ else
         {
             <tr>
                 <td>@item.Name</td>
-                <td class="text-end">
-                    <span class="text-muted">Read-only</span>
-                </td>
+                <td></td>
             </tr>
         }
     </tbody>

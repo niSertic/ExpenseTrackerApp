@@ -34,7 +34,7 @@ else
                 <th>Period</th>
                 <th>Monthly Income</th>
                 <th>Monthly Savings Goal</th>
-                <th style="width: 320px;"></th>
+                <th style="width: 380px;"></th>
             </tr>
         </thead>
         <tbody>
@@ -58,21 +58,20 @@ else
                         ? item.PlannedMonthlySavings.Value.ToString("N2") + " " + currency
                         : "-")
                 </td>
-                <td>
+                <td class="text-end">
                     @if (!item.IsActive)
                     {
                         <form asp-action="SetActive" asp-route-id="@item.Id" method="post" class="d-inline">
                             @Html.AntiForgeryToken()
-                            <button type="submit" class="btn btn-sm btn-outline-success">Set Active</button>
+                            <button type="submit" class="btn btn-sm btn-outline-success">Activate</button>
                         </form>
                     }
-                    else
-                    {
-                        <span class="text-muted me-2">Active</span>
-                    }
-                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary">Edit</a> |
-                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary">Details</a> |
-                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger">Delete</a>
+                    
+                    <div class="d-inline-flex gap-1">
+                        <a asp-action="Details" asp-route-id="@item.Id" class="btn btn-sm btn-outline-secondary action-btn">Dashboard</a>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary action-btn">Edit</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-outline-danger action-btn">Delete</a>
+                    </div>
                 </td>
             </tr>
         }

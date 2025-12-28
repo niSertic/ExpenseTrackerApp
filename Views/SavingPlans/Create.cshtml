@@ -27,13 +27,13 @@
                 <div class="input-group">
                 <input asp-for="ExpectedMonthlyIncome" class="form-control" />
                     <span class="input-group-text">@currency</span>
-			</div>
+			    </div>
                 <span asp-validation-for="ExpectedMonthlyIncome" class="text-danger"></span>
             </div>
             <div class="mb-3">
                 <label asp-for="PlannedMonthlySavings" class="form-label"></label>
                 <div class="input-group">
-                    <input asp-for="PlannedMonthlySavings" class="form-control" />
+                    <input asp-for="PlannedMonthlySavings" class="form-control" placeholder="0.00" />
                     <span class="input-group-text">@currency</span>
                 </div>
                 <span asp-validation-for="PlannedMonthlySavings" class="text-danger"></span>
@@ -51,9 +51,6 @@
     </div>
 </div>
 
-<div>
-    <a asp-action="Index">Back to List</a>
-</div>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
