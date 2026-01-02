@@ -61,22 +61,21 @@ namespace ExpenseTrackerApp.Services.SavingPlans
                 }
             }
 
-            // Month list for whole plan (inclusive)
+            // Monthly breakdown
             var monthStarts = new List<DateTime>();
             var cursor = new DateTime(plan.StartDate.Year, plan.StartDate.Month, 1);
             var endMonth = new DateTime(plan.EndDate.Year, plan.EndDate.Month, 1);
-
             while (cursor <= endMonth)
             {
                 monthStarts.Add(cursor);
                 cursor = cursor.AddMonths(1);
             }
 
-            // Spent grouped by month in plan range
+            
             var spentByMonth = await _context.Expenses
                 .Where(e => e.UserId == userId &&
                             e.Date.Date >= plan.StartDate.Date &&
-                            e.Date.Date <= plan.EndDate.Date)
+                            e.Date.Date <= effectiveEnd)
                 .GroupBy(e => new { e.Date.Year, e.Date.Month })
                 .Select(g => new
                 {
@@ -86,10 +85,25 @@ namespace ExpenseTrackerApp.Services.SavingPlans
                 })
                 .ToListAsync();
 
+            var effectiveEndMonth = new DateTime(effectiveEnd.Year, effectiveEnd.Month, 1);
+
             var spentLookup = spentByMonth.ToDictionary(x => (x.Year, x.Month), x => x.Spent);
 
             var monthlyRows = monthStarts.Select(ms =>
             {
+                var isFuture = ms > effectiveEndMonth;
+
+                if (isFuture)
+                {
+                    return new SavingPlanMonthRowVM
+                    {
+                        Year = ms.Year,
+                        Month = ms.Month,
+                        Income = 0m,
+                        Spent = 0m
+                    };
+                }
+
                 spentLookup.TryGetValue((ms.Year, ms.Month), out var spent);
 
                 return new SavingPlanMonthRowVM

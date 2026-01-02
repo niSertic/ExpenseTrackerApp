@@ -39,7 +39,7 @@
     string fromRoute = Model.Filters.From?.ToString("yyyy-MM-dd") ?? "";
     string toRoute = Model.Filters.To?.ToString("yyyy-MM-dd") ?? "";
 
-	// Get selected category name
+	
     string? selectedCategoryName = null;
 
     if (selectedCategoryId.HasValue)
@@ -229,26 +229,35 @@
         <div>
             <div class="fw-semibold">Active Saving Plan</div>
             <div class="text-muted">
-                @p.StartDate.ToString("dd.MM.yyyy") – @p.EndDate.ToString("dd.MM.yyyy")
-                (to date through @p.EffectiveEnd.ToString("dd.MM.yyyy"))
+                Plan period: @p.StartDate.ToString("dd.MM.yyyy") – @p.EndDate.ToString("dd.MM.yyyy")
             </div>
 
             <div class="mt-2">
-                <strong>Savings to date:</strong> @p.SavingsToDate.ToString("N2") @currency
+                <strong>Savings to date <span class="text-muted">(@p.EffectiveEnd.ToString("dd.MM.yyyy"))</span>:</strong> @p.SavingsToDate.ToString("N2") @currency
 
                 @if (p.GoalToDate.HasValue && p.GoalToDate.Value > 0)
                 {
                     <span class="ms-2">
-                        | <strong>Goal remaining:</strong>
-                       
-                        @if (p.GoalRemaining <= 0)
+						·&nbsp; <strong>Goal to date:</strong> @p.GoalToDate.Value.ToString("N2") @currency&nbsp;&nbsp;&nbsp;
+                        
+                        @if (p.GoalRemaining < 0)
                         {
-                            <span class="text-success">Goal achieved!</span>
+                            <span class="text-success">
+                                You are above your goal by
+                                @( (-p.GoalRemaining.Value).ToString("N2") ) @currency!
+                            </span>
                         }
+                        else if (p.GoalRemaining == 0)
+                        {
+                            <span class="text-success">
+                                Goal achived!
+                            </span>
+						}
+		
                         else
                         {
-                            <span>
-                                @((p.GoalRemaining ?? 0m).ToString("N2")) @currency
+                            <span class="text-danger">
+                                You are under your goal by @((p.GoalRemaining ?? 0m).ToString("N2")) @currency!
                             </span>
                         }
                     </span>
