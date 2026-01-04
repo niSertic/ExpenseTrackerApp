@@ -29,9 +29,9 @@ namespace ExpenseTrackerApp
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddControllersWithViews();
-            builder.Services.AddScoped<ISavingPlanDashboardService, SavingPlanDashboardService>();
-            builder.Services.AddScoped<IExpensesDashboardService, ExpensesDashboardService>();
-            builder.Services.AddScoped<IHomeDashboardService, HomeDashboardService>();
+            builder.Services.AddScoped<ISavingPlanService, SavingPlanService>();
+            builder.Services.AddScoped<IExpensesService, ExpensesService>();
+            builder.Services.AddScoped<IHomeService, HomeService>();
 
             builder.Services.AddLocalization(); // optional for future resource localization
 

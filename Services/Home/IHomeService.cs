@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace ExpenseTrackerApp.Services.Home
 {
-    public interface IHomeDashboardService
+    public interface IHomeService
     {
         Task<HomeDashboardVM> BuildAsync(string userId);
     }

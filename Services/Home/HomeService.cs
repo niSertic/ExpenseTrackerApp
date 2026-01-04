@@ -6,15 +6,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseTrackerApp.Services.Home
 {
-    public class HomeDashboardService : IHomeDashboardService
+    public class HomeService : IHomeService
     {
 
         private readonly ApplicationDbContext _context;
-        private readonly ISavingPlanDashboardService _savingPlanDashboardService;
+        private readonly ISavingPlanService _savingPlanDashboardService;
 
-        public HomeDashboardService(
+        public HomeService(
             ApplicationDbContext context,
-            ISavingPlanDashboardService savingPlanDashboardService)
+            ISavingPlanService savingPlanDashboardService)
         {
             _context = context;
             _savingPlanDashboardService = savingPlanDashboardService;

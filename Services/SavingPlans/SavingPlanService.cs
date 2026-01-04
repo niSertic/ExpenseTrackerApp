@@ -8,12 +8,12 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ExpenseTrackerApp.Services.SavingPlans
 {
-    public class SavingPlanDashboardService : ISavingPlanDashboardService
+    public class SavingPlanService : ISavingPlanService
     {
 
         private readonly ApplicationDbContext _context;
 
-        public SavingPlanDashboardService(ApplicationDbContext context)
+        public SavingPlanService(ApplicationDbContext context)
         {
             _context = context;
         }

@@ -14,7 +14,7 @@ namespace ExpenseTrackerApp.Models
         [ValidateNever]
         public ApplicationUser User { get; set; } = default!;
 
-        // Category
+      
         [Required]
         public int CategoryId { get; set; }
 

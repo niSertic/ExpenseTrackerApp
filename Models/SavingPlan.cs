@@ -32,10 +32,10 @@ namespace ExpenseTrackerApp.Models
         [Range(0, double.MaxValue)]
         [Display(Name = "Planned monthly savings")]
         public decimal? PlannedMonthlySavings { get; set; }
-
+        
         [StringLength(300)]
         public string? Notes { get; set; }
-
+        
         public bool IsActive { get; set; }
     }
 }

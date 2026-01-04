@@ -3,12 +3,7 @@ using ExpenseTrackerApp.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace ExpenseTrackerApp.Controllers
 {
@@ -52,7 +47,7 @@ namespace ExpenseTrackerApp.Controllers
         public async Task<IActionResult> Create([Bind("Name")] Category category)
         {
             var userId = GetCurrentUserId();
-            var normalizedName = (category.Name ?? "").Trim();
+            var normalizedName = NormalizeName(category.Name);
 
             if (string.IsNullOrWhiteSpace(normalizedName))
             {
@@ -61,9 +56,7 @@ namespace ExpenseTrackerApp.Controllers
             }
 
             // Check for duplicate category names for the user and global categories
-            var exists = await _context.Categories.AnyAsync(c =>
-                c.Name.ToLower() == normalizedName.ToLower() &&
-                (c.UserId == null || c.UserId == userId));
+            var exists = await CategoryNameExistsAsync(userId, normalizedName);
 
             if (exists)
             {
@@ -72,18 +65,19 @@ namespace ExpenseTrackerApp.Controllers
             }
 
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                category.Name = normalizedName;
-                category.UserId = userId;
-
-                _context.Add(category);
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction(nameof(Index));
+                return View(category);
             }
-            
-            return View(category);
+
+            category.Name = normalizedName;
+            category.UserId = userId;
+
+            _context.Add(category);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
+ 
         }
 
         // GET: Categories/Edit/5
@@ -131,7 +125,7 @@ namespace ExpenseTrackerApp.Controllers
                 return NotFound();
             }
 
-            var normalizedName = (category.Name ?? "").Trim();
+            var normalizedName = NormalizeName(category.Name);
 
             if (string.IsNullOrWhiteSpace(normalizedName))
             {
@@ -140,10 +134,7 @@ namespace ExpenseTrackerApp.Controllers
             }
 
             // Check for duplicate category names for the user and global categories
-            var exists = await _context.Categories.AnyAsync(c =>
-                c.Id != id &&
-                c.Name.ToLower() == normalizedName.ToLower() &&
-                (c.UserId == null || c.UserId == userId));
+            var exists = await CategoryNameExistsAsync(userId, normalizedName, excludeCategoryId: id);
 
             if (exists)
             {
@@ -152,18 +143,21 @@ namespace ExpenseTrackerApp.Controllers
             }
 
 
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                category.Name = normalizedName;
-                category.UserId = userId;
-
-                _context.Update(category);
-                await _context.SaveChangesAsync();
-
-                return RedirectToAction(nameof(Index));
+                return View(category);
             }
+
+            category.Name = normalizedName;
+            category.UserId = userId;
+
+            _context.Update(category);
+            await _context.SaveChangesAsync();
+
+            return RedirectToAction(nameof(Index));
             
-            return View(category);
+            
+            
         }
 
         // GET: Categories/Delete/5
@@ -177,7 +171,6 @@ namespace ExpenseTrackerApp.Controllers
             var userId = GetCurrentUserId();
 
             var category = await _context.Categories
-                .Include(c => c.User)
                 .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
 
             if (category == null)
@@ -215,6 +208,20 @@ namespace ExpenseTrackerApp.Controllers
             await _context.SaveChangesAsync();
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // ---------------- Helpers ----------------
+
+        private static string NormalizeName(string? name) => (name ?? "").Trim();
+
+        private async Task<bool> CategoryNameExistsAsync(string userId, string normalizedName, int? excludeCategoryId = null)
+        {
+            var lowered = normalizedName.ToLower();
+
+            return await _context.Categories.AnyAsync(c =>
+                (excludeCategoryId == null || c.Id != excludeCategoryId.Value) &&
+                c.Name.ToLower() == lowered &&
+                (c.UserId == null || c.UserId == userId));
         }
 
     }

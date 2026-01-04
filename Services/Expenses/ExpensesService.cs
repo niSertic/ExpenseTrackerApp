@@ -10,12 +10,12 @@ using System.Threading.Tasks;
 
 namespace ExpenseTrackerApp.Services.Expenses
 {
-    public class ExpensesDashboardService : IExpensesDashboardService
+    public class ExpensesService : IExpensesService
     {
         private readonly ApplicationDbContext _context;
-        private readonly ISavingPlanDashboardService _savingPlanDashboardService;
+        private readonly ISavingPlanService _savingPlanDashboardService;
 
-        public ExpensesDashboardService(ApplicationDbContext context, ISavingPlanDashboardService savingPlanDashboardService)
+        public ExpensesService(ApplicationDbContext context, ISavingPlanService savingPlanDashboardService)
         {
             _context = context;
             _savingPlanDashboardService = savingPlanDashboardService;

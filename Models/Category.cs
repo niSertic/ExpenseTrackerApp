@@ -5,7 +5,7 @@ namespace ExpenseTrackerApp.Models
     public class Category
     {
         public int Id { get; set; }
-        // Name of the category
+        
         [Required]
         [StringLength(100)]
         public string Name { get; set; } = default!;

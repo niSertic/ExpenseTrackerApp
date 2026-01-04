@@ -16,9 +16,9 @@ namespace ExpenseTrackerApp.Controllers
     {
         private readonly ApplicationDbContext _context;
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IExpensesDashboardService _dashboardService;
+        private readonly IExpensesService _dashboardService;
 
-        public ExpensesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IExpensesDashboardService dashboardService)
+        public ExpensesController(ApplicationDbContext context, UserManager<ApplicationUser> userManager, IExpensesService dashboardService)
         {
             _context = context;
             _userManager = userManager;

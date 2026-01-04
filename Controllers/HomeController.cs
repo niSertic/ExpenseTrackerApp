@@ -11,9 +11,9 @@ namespace ExpenseTrackerApp.Controllers
     public class HomeController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly IHomeDashboardService _homeDashboardService;
+        private readonly IHomeService _homeDashboardService;
 
-        public HomeController(UserManager<ApplicationUser> userManager, IHomeDashboardService homeDashboardService)
+        public HomeController(UserManager<ApplicationUser> userManager, IHomeService homeDashboardService)
         {
             _userManager = userManager;
             _homeDashboardService = homeDashboardService;
