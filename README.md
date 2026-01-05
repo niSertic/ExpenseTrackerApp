@@ -36,40 +36,45 @@ Before running the application, ensure you have:
 
 ## Getting Started
 
-- Clone the repository to your local machine:
-git clone <repository-url>
-
+- Clone the repository:
+   ```
+   git clone <repository-url>
+	```
 - Navigate to the project directory:
-cd ExpenseTrackerApp
-
+   ```
+   cd ExpenseTrackerApp
+   ```
 - Update the database connection string in `appsettings.json` (see in configuration)
 
 - Restore project dependencies:
-dotnet restore
-
+   ```
+   dotnet ef database update
+   ```
 - Apply database migrations:
-dotnet ef database update
-
+   ```
+   dotnet ef database update
+   ```
 - Run the application:
-dotnet run
-
-- Open a web browser and navigate to:
-https://localhost:5001
+   ```
+   dotnet run
+   ```
 
 ---
 
 ## Configuration
-- Update the connection string in 'appsettings.json`:
-
-"ConnectionStrings": {
-	"DefaultConnection": "Server=YOUR_SERVER;Database=ExpenseTrackerDB;Trusted_Connection=True;MultipleActiveResultSets=true"
-	}
+- Update the connection string in `appsettings.json`:
+	```
+	"ConnectionStrings": {
+		"DefaultConnection": "Server=YOUR_SERVER;Database=ExpenseTrackerDB;Trusted_Connection=True;MultipleActiveResultSets=true"
+		}
+	```
 
 - Currency symbol can be configured in:
+	```
 	"AppSettings": {
     "CurrencySymbol": "€"
 	}
-
+	```
 ---
 
 ## Screenshots
