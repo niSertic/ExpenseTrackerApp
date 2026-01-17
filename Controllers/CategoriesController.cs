@@ -55,7 +55,7 @@ namespace ExpenseTrackerApp.Controllers
                 return View(category);
             }
 
-            // Check for duplicate category names for the user and global categories
+            
             var exists = await CategoryNameExistsAsync(userId, normalizedName);
 
             if (exists)
@@ -90,7 +90,6 @@ namespace ExpenseTrackerApp.Controllers
 
             var userId = GetCurrentUserId();
 
-            // Ensure the category belongs to the current user
             var category = await _context.Categories
                 .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
 
@@ -115,7 +114,6 @@ namespace ExpenseTrackerApp.Controllers
                 return NotFound();
             }
 
-            // Ensure the category belongs to the current user
             var existingCategory = await _context.Categories
                 .AsNoTracking()
                 .FirstOrDefaultAsync(c => c.Id == id && c.UserId == userId);
@@ -133,7 +131,6 @@ namespace ExpenseTrackerApp.Controllers
                 return View(category);
             }
 
-            // Check for duplicate category names for the user and global categories
             var exists = await CategoryNameExistsAsync(userId, normalizedName, excludeCategoryId: id);
 
             if (exists)
@@ -197,7 +194,6 @@ namespace ExpenseTrackerApp.Controllers
             var hasExpenses = await _context.Expenses
                 .AnyAsync(e => e.UserId == userId && e.CategoryId == id);
 
-            // Prevent deletion in case of existing expenses
             if (hasExpenses)
             {
                 ModelState.AddModelError(string.Empty, "Cannot delete a category that has expenses.");
@@ -209,8 +205,6 @@ namespace ExpenseTrackerApp.Controllers
 
             return RedirectToAction(nameof(Index));
         }
-
-        // ---------------- Helpers ----------------
 
         private static string NormalizeName(string? name) => (name ?? "").Trim();
 

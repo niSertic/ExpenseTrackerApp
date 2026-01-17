@@ -57,7 +57,7 @@ namespace ExpenseTrackerApp.Controllers
             var userId = GetCurrentUserId();
 
             var categories = await _context.Categories
-                .Where(c => c.UserId == null || c.UserId == userId) // global + user-specific
+                .Where(c => c.UserId == null || c.UserId == userId) 
                 .OrderBy(c => c.Name)
                 .ToListAsync();
 
@@ -133,7 +133,6 @@ namespace ExpenseTrackerApp.Controllers
                 return NotFound();
             }
 
-            // ensure this expense belongs to current user
             var existingExpense = await _context.Expenses
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Id == id && e.UserId == userId);

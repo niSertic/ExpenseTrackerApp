@@ -23,6 +23,21 @@ namespace ExpenseTrackerApp.Services.Expenses
 
         public async Task<ExpensesIndexVM> BuildIndexAsync(string userId, ExpenseFiltersVM filters)
         {
+            // Dropdowns
+            var years = await _context.Expenses
+                .AsNoTracking()
+                .Where(e => e.UserId == userId)
+                .Select(e => e.Date.Year)
+                .Distinct()
+                .OrderByDescending(y => y)
+                .ToListAsync();
+
+            var categories = await _context.Categories
+                .AsNoTracking()
+                .Where(c => c.UserId == null || c.UserId == userId)
+                .OrderBy(c => c.Name)
+                .ToListAsync();
+
             // Filtering
             var filtered = _context.Expenses
                 .AsNoTracking()
@@ -164,23 +179,6 @@ namespace ExpenseTrackerApp.Services.Expenses
                     cursor = cursor.AddMonths(1);
                 }
             }
-
-
-            // Dropdowns
-            var years = await _context.Expenses
-                .AsNoTracking()
-                .Where(e => e.UserId == userId)
-                .Select(e => e.Date.Year)
-                .Distinct()
-                .OrderByDescending(y => y)
-                .ToListAsync();
-
-            var categories = await _context.Categories
-                .AsNoTracking()
-                .Where(c => c.UserId == null || c.UserId == userId)
-                .OrderBy(c => c.Name)
-                .ToListAsync();
-
 
 
             // Active Saving Plan Badge

@@ -3,7 +3,6 @@ using ExpenseTrackerApp.Models;
 using ExpenseTrackerApp.Services.Expenses;
 using ExpenseTrackerApp.Services.Home;
 using ExpenseTrackerApp.Services.SavingPlans;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -17,7 +16,6 @@ namespace ExpenseTrackerApp
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
             var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
 
             builder.Services.AddDbContext<ApplicationDbContext>(options =>
@@ -25,7 +23,7 @@ namespace ExpenseTrackerApp
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = false)
+            builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
                 .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddControllersWithViews();
@@ -33,9 +31,8 @@ namespace ExpenseTrackerApp
             builder.Services.AddScoped<IExpensesService, ExpensesService>();
             builder.Services.AddScoped<IHomeService, HomeService>();
 
-            builder.Services.AddLocalization(); // optional for future resource localization
+            builder.Services.AddLocalization(); 
 
-            //Use en-GB: decimal '.' + European date format (dd/MM/yyyy)
             var defaultCulture = new CultureInfo("en-GB");
             var supportedCultures = new[] { defaultCulture };
 
@@ -46,14 +43,13 @@ namespace ExpenseTrackerApp
                 SupportedUICultures = supportedCultures
             };
 
-            // Ensure background threads use the same default
             CultureInfo.DefaultThreadCurrentCulture = defaultCulture;
             CultureInfo.DefaultThreadCurrentUICulture = defaultCulture;
             
 
             var app = builder.Build();
 
-            // Configure the HTTP request pipeline.
+         
             if (app.Environment.IsDevelopment())
             {
                 app.UseMigrationsEndPoint();
@@ -61,7 +57,7 @@ namespace ExpenseTrackerApp
             else
             {
                 app.UseExceptionHandler("/Home/Error");
-                // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
+                
                 app.UseHsts();
             }
 
@@ -69,7 +65,6 @@ namespace ExpenseTrackerApp
 
             app.UseRouting();
 
-            // Apply localization so requests use en-US
             app.UseRequestLocalization(localizationOptions);
 
             app.UseAuthorization();

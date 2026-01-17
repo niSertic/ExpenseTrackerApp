@@ -214,8 +214,7 @@ namespace ExpenseTrackerApp.Controllers
                 .FirstOrDefaultAsync(p => p.Id == id && p.UserId == userId);
 
             if (plan == null) return NotFound();
-
-            // Make all user's plans inactive first 
+ 
             var userPlans = await _context.SavingPlans
                 .Where(p => p.UserId == userId && p.IsActive)
                 .ToListAsync();
@@ -223,7 +222,6 @@ namespace ExpenseTrackerApp.Controllers
             foreach (var p in userPlans)
                 p.IsActive = false;
 
-            // Activate selected plan
             plan.IsActive = true;
 
             await _context.SaveChangesAsync();

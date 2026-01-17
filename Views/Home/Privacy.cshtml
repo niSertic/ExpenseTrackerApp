@@ -1,6 +1,41 @@
 ﻿@{
     ViewData["Title"] = "Privacy Policy";
 }
-<h1>@ViewData["Title"]</h1>
+<div class="container mt-4">
+    <h1 class="mb-4">
+        🔒 Privacy Policy
+    </h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+    <hr />
+
+    <h5>Data Collection</h5>
+    <ul>
+        <li>User accounts, expenses, categories, and saving plans are stored in the application database.</li>
+        <li>No personal data is shared with third parties.</li>
+        <li>Data is used only to provide application functionality.</li>
+    </ul>
+
+    <h5>Authentication</h5>
+    <ul>
+        <li>User authentication is handled using ASP.NET Core Identity.</li>
+        <li>Passwords are securely hashed and never stored in plain text.</li>
+    </ul>
+
+    <h5>Data Ownership</h5>
+    <ul>
+        <li>Each user can access only their own data.</li>
+        <li>Users may delete their account and all associated data at any time.</li>
+    </ul>
+
+    <h5>Cookies & Tracking</h5>
+    <ul>
+        <li>This application does not use tracking cookies or analytics.</li>
+    </ul>
+
+    <div class="mt-4">
+        <a asp-controller="Home" asp-action="Index" class="btn btn-secondary">
+            Back to Home
+        </a>
+    </div>
+</div>
+

@@ -7,7 +7,7 @@ using System.Diagnostics;
 
 namespace ExpenseTrackerApp.Controllers
 {
-    [Authorize]
+    
     public class HomeController : Controller
     {
         private readonly UserManager<ApplicationUser> _userManager;
@@ -22,6 +22,7 @@ namespace ExpenseTrackerApp.Controllers
 
         private string GetCurrentUserId() => _userManager.GetUserId(User)!;
 
+        [Authorize]
         public async Task<IActionResult> Index()
         {
             var userId = GetCurrentUserId();
