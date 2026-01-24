@@ -5,8 +5,8 @@ using ExpenseTrackerApp.Services.Home;
 using ExpenseTrackerApp.Services.SavingPlans;
 using Microsoft.AspNetCore.Localization;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Globalization;
+using Microsoft.AspNetCore.Identity;
 
 namespace ExpenseTrackerApp
 {
@@ -23,15 +23,19 @@ namespace ExpenseTrackerApp
 
             builder.Services.AddDatabaseDeveloperPageExceptionFilter();
 
-            builder.Services.AddDefaultIdentity<ApplicationUser>(options => options.SignIn.RequireConfirmedAccount = true)
-                .AddEntityFrameworkStores<ApplicationDbContext>();
+            builder.Services.AddDefaultIdentity<ApplicationUser>(options =>
+            {
+                options.SignIn.RequireConfirmedAccount = true;
+                options.User.RequireUniqueEmail = true;
+            })
+            .AddEntityFrameworkStores<ApplicationDbContext>();
 
             builder.Services.AddControllersWithViews();
             builder.Services.AddScoped<ISavingPlanService, SavingPlanService>();
             builder.Services.AddScoped<IExpensesService, ExpensesService>();
             builder.Services.AddScoped<IHomeService, HomeService>();
 
-            builder.Services.AddLocalization(); 
+            builder.Services.AddLocalization();
 
             var defaultCulture = new CultureInfo("en-GB");
             var supportedCultures = new[] { defaultCulture };

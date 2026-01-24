@@ -48,7 +48,8 @@ Before running the application, ensure you have:
 
 - Restore project dependencies:
    ```
-   dotnet ef database update
+   dotnet restore
+
    ```
 - Apply database migrations:
    ```
